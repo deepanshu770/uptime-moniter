@@ -1,0 +1,21 @@
+{
+  "name": "@uptime/scheduler",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@uptime/db": "workspace:*",
+    "@uptime/shared-types": "workspace:*",
+    "@uptime/worker": "workspace:*",
+    "ioredis": "^5.4.1",
+    "kafkajs": "^2.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.4"
+  }
+}
