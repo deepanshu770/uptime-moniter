@@ -1,0 +1,26 @@
+{
+  "name": "@uptime/api",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@uptime/db": "workspace:*",
+    "@uptime/evaluator": "workspace:*",
+    "@uptime/scheduler": "workspace:*",
+    "@uptime/shared-types": "workspace:*",
+    "@uptime/worker": "workspace:*",
+    "fastify": "^4.28.1",
+    "ioredis": "^5.4.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "pino-pretty": "^13.1.3",
+    "typescript": "^5.5.4"
+  }
+}
