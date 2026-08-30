@@ -1,4 +1,4 @@
-import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import Redis from 'ioredis';
 import { z } from 'zod';

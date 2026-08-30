@@ -5,3 +5,5 @@ dist/
 *.log
 coverage/
 .pnpm-debug.log*
+skill_list.txt
+.agent/skills
