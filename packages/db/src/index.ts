@@ -72,6 +72,7 @@ export async function initDatabase(connectionString?: string): Promise<void> {
       CREATE TABLE IF NOT EXISTS monitors (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        created_by UUID NOT NULL,
         name TEXT NOT NULL,
         type TEXT NOT NULL,
         target TEXT NOT NULL,
@@ -86,6 +87,11 @@ export async function initDatabase(connectionString?: string): Promise<void> {
         created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
+    `);
+
+    // Add index for created_by
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_monitors_created_by ON monitors (created_by);
     `);
 
     // Check Results table
@@ -201,14 +207,15 @@ export async function initDatabase(connectionString?: string): Promise<void> {
   }
 }
 
-export async function createMonitor(tenantId: string, input: CreateMonitorInput): Promise<Monitor> {
+export async function createMonitor(tenantId: string, userId: string, input: CreateMonitorInput): Promise<Monitor> {
   const p = getPool();
   const res = await p.query(
-    `INSERT INTO monitors (tenant_id, name, type, target, interval_seconds, timeout_ms, regions, confirm_quorum, confirm_regions, enabled, config, escalation_policy_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    `INSERT INTO monitors (tenant_id, created_by, name, type, target, interval_seconds, timeout_ms, regions, confirm_quorum, confirm_regions, enabled, config, escalation_policy_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING *`,
     [
       tenantId,
+      userId,
       input.name,
       input.type,
       input.target,
@@ -382,6 +389,7 @@ function formatMonitor(row: any): Monitor {
   return {
     id: row.id,
     tenant_id: row.tenant_id,
+    created_by: row.created_by,
     name: row.name,
     type: row.type as MonitorType,
     target: row.target,

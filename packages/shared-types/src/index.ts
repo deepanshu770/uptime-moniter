@@ -34,6 +34,7 @@ export interface Monitor {
   enabled: boolean;
   config: MonitorConfig;
   escalation_policy_id?: string | null;
+  created_by: string;
   created_at: string;
   updated_at: string;
 }

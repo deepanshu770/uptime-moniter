@@ -17,10 +17,12 @@ export const CreateMonitorModal: React.FC<CreateMonitorModalProps> = ({ onClose,
   const [formRegions, setFormRegions] = useState<string[]>(['us-east', 'eu-west']);
   const [formMethod, setFormMethod] = useState('GET');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleCreateMonitor = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMsg('');
     try {
       const res = await fetch('/v1/monitors', {
         method: 'POST',
@@ -44,9 +46,13 @@ export const CreateMonitorModal: React.FC<CreateMonitorModalProps> = ({ onClose,
       if (res.ok) {
         onCreated();
         onClose();
+      } else {
+        const data = await res.json().catch(() => null);
+        setErrorMsg(data?.message || data?.error || 'Failed to create monitor');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setErrorMsg(err.message || 'Network error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -60,10 +66,16 @@ export const CreateMonitorModal: React.FC<CreateMonitorModalProps> = ({ onClose,
             <Plus className="w-5 h-5 text-blue-500" />
             <span>Create New Monitor</span>
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {errorMsg && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-red-400 text-sm">
+            {errorMsg}
+          </div>
+        )}
 
         <form onSubmit={handleCreateMonitor} className="space-y-4 text-xs">
           <div>

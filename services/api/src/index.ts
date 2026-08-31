@@ -18,11 +18,23 @@ import { CreateMonitorSchema, CheckJob } from '@uptime/shared-types';
 import { scheduleMonitor, unscheduleMonitor } from '@uptime/scheduler';
 import { executeSingleJob } from '@uptime/worker';
 import { processCheckResult } from '@uptime/evaluator';
+import jwt from 'jsonwebtoken';
 
 // Environment variable validation
 const PORT = parseInt(process.env.PORT || '4000', 10);
-const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+const JWT_SECRET = process.env.JWT_SECRET || 'CHANGE_ME_IN_PRODUCTION_super_secret_key_32chars!';
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    user: {
+      sub: string;
+      tid: string;
+      role: string;
+      type: 'access';
+    };
+  }
+}
 
 if (!process.env.DATABASE_URL) {
   console.warn('[API] WARNING: DATABASE_URL is not set. Assuming database is configured via defaults.');
@@ -67,6 +79,29 @@ export async function buildApp(): Promise<FastifyInstance> {
     reply.status(500).send({ error: 'Internal Server Error', message: error.message });
   });
 
+  // JWT Verification Hook for API routes
+  fastify.addHook('preHandler', async (request, reply) => {
+    if (request.url.startsWith('/v1/')) {
+      const authHeader = request.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return reply.status(401).send({ error: 'Unauthorized', message: 'Missing or invalid Authorization header' });
+      }
+      const token = authHeader.substring(7);
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET, {
+          issuer: 'uptime-auth',
+          audience: 'uptime-api',
+        }) as any;
+        
+        if (decoded.type !== 'access') throw new Error('Invalid token type');
+        
+        request.user = decoded;
+      } catch (err) {
+        return reply.status(401).send({ error: 'Unauthorized', message: 'Invalid or expired token' });
+      }
+    }
+  });
+
   /**
    * GET /health
    * Simple health check endpoint for load balancers and orchestrators.
@@ -80,9 +115,10 @@ export async function buildApp(): Promise<FastifyInstance> {
    * Retrieves high-level aggregate statistics for the entire tenant workspace.
    * Includes active incidents, total monitors, and a computed global uptime percentage.
    */
-  fastify.get('/v1/stats', async () => {
-    const monitors = await listMonitors(DEFAULT_TENANT_ID);
-    const incidents = await listIncidents(DEFAULT_TENANT_ID);
+  fastify.get('/v1/stats', async (request) => {
+    const tenantId = request.user.tid;
+    const monitors = await listMonitors(tenantId);
+    const incidents = await listIncidents(tenantId);
 
     let upCount = 0;
     let downCount = 0;
@@ -129,8 +165,9 @@ export async function buildApp(): Promise<FastifyInstance> {
    * Retrieves a list of all monitors configured for the tenant.
    * Joins live state data from Redis to provide real-time status.
    */
-  fastify.get('/v1/monitors', async () => {
-    const monitors = await listMonitors(DEFAULT_TENANT_ID);
+  fastify.get('/v1/monitors', async (request) => {
+    const tenantId = request.user.tid;
+    const monitors = await listMonitors(tenantId);
     return Promise.all(
       monitors.map(async (m) => {
         const state = await redis.hgetall(`state:${m.id}`);
@@ -152,9 +189,20 @@ export async function buildApp(): Promise<FastifyInstance> {
   fastify.post('/v1/monitors', async (request, reply) => {
     // Validate request body
     const parsed = CreateMonitorSchema.parse(request.body);
+    const tenantId = request.user.tid;
+    const userId = request.user.sub;
     
+    // Check monitor limit (5 per user/tenant)
+    const existingMonitors = await listMonitors(tenantId);
+    if (existingMonitors.length >= 5) {
+      return reply.status(403).send({
+        error: 'Forbidden',
+        message: 'Monitor limit reached. Please upgrade your subscription to add more than 5 monitors.'
+      });
+    }
+
     // Persist to Postgres
-    const monitor = await createMonitor(DEFAULT_TENANT_ID, parsed);
+    const monitor = await createMonitor(tenantId, userId, parsed);
     
     // Register monitor in the Kafka-based timer wheel scheduler
     await scheduleMonitor(monitor).catch((e) =>
@@ -284,8 +332,9 @@ export async function buildApp(): Promise<FastifyInstance> {
    * GET /v1/incidents
    * Lists historical and active incidents for the tenant.
    */
-  fastify.get('/v1/incidents', async () => {
-    return listIncidents(DEFAULT_TENANT_ID, 50);
+  fastify.get('/v1/incidents', async (request) => {
+    const tenantId = request.user.tid;
+    return listIncidents(tenantId, 50);
   });
 
   /**

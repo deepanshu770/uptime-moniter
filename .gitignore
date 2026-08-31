@@ -7,3 +7,5 @@ coverage/
 .pnpm-debug.log*
 skill_list.txt
 .agent/skills
+.agents
+graphify-out

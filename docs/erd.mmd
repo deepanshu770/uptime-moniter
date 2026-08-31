@@ -1,0 +1,110 @@
+erDiagram
+    TENANTS ||--o{ USERS : "has"
+    TENANTS ||--o{ MONITORS : "has"
+    TENANTS ||--o{ ESCALATION_POLICIES : "has"
+    TENANTS ||--o{ INCIDENTS : "has"
+    
+    USERS ||--o{ REFRESH_TOKENS : "has"
+    
+    ESCALATION_POLICIES ||--o{ MONITORS : "applied_to"
+    
+    MONITORS ||--o{ CHECK_RESULTS : "generates"
+    MONITORS ||--o{ INCIDENTS : "triggers"
+    
+    INCIDENTS ||--o{ NOTIFICATION_LOGS : "logs"
+
+    TENANTS {
+        UUID id PK
+        TEXT name
+        TEXT plan
+        TIMESTAMPTZ created_at
+    }
+
+    USERS {
+        UUID id PK
+        UUID tenant_id FK
+        TEXT email
+        TEXT password_hash
+        TEXT role
+        BOOLEAN is_verified
+        TIMESTAMPTZ last_login_at
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    REFRESH_TOKENS {
+        UUID id PK
+        UUID user_id FK
+        TEXT token_hash
+        TIMESTAMPTZ expires_at
+        TIMESTAMPTZ revoked_at
+        TIMESTAMPTZ created_at
+        TEXT replaced_by_token
+    }
+
+    ESCALATION_POLICIES {
+        UUID id PK
+        UUID tenant_id FK
+        TEXT name
+        TIMESTAMPTZ created_at
+    }
+
+    MONITORS {
+        UUID id PK
+        UUID tenant_id FK
+        TEXT name
+        TEXT type
+        TEXT target
+        INT interval_seconds
+        INT timeout_ms
+        TEXT[] regions
+        INT confirm_quorum
+        INT confirm_regions
+        BOOLEAN enabled
+        JSONB config
+        UUID escalation_policy_id FK
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    CHECK_RESULTS {
+        TIMESTAMPTZ time
+        UUID monitor_id FK
+        UUID tenant_id FK
+        TEXT region
+        SMALLINT status
+        INT status_code
+        INT response_time_ms
+        INT dns_ms
+        INT tcp_ms
+        INT tls_ms
+        INT ttfb_ms
+        TEXT error_code
+        TEXT error_message
+        SMALLINT attempt
+        TEXT worker_id
+        TEXT idempotency_key
+    }
+
+    INCIDENTS {
+        UUID id PK
+        UUID tenant_id FK
+        UUID monitor_id FK
+        TEXT status
+        TEXT severity
+        TIMESTAMPTZ started_at
+        TIMESTAMPTZ acknowledged_at
+        TIMESTAMPTZ resolved_at
+        TEXT root_cause_region
+        TEXT error_summary
+    }
+
+    NOTIFICATION_LOGS {
+        UUID id PK
+        UUID incident_id FK
+        TEXT channel_type
+        TEXT idempotency_key
+        TEXT status
+        JSONB payload
+        TIMESTAMPTZ sent_at
+    }
