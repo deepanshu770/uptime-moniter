@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface CreateMonitorModalProps {
   onClose: () => void;
@@ -7,6 +8,7 @@ interface CreateMonitorModalProps {
 }
 
 export const CreateMonitorModal: React.FC<CreateMonitorModalProps> = ({ onClose, onCreated }) => {
+  const { accessToken } = useAuth();
   const [formName, setFormName] = useState('');
   const [formType, setFormType] = useState('http');
   const [formTarget, setFormTarget] = useState('');
@@ -22,7 +24,10 @@ export const CreateMonitorModal: React.FC<CreateMonitorModalProps> = ({ onClose,
     try {
       const res = await fetch('/v1/monitors', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
+        },
         body: JSON.stringify({
           name: formName,
           type: formType,

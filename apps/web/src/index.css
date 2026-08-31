@@ -1,47 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Open Sans', sans-serif;
+    background-color: #0F172A;
+    color: #F8FAFC;
+    -webkit-font-smoothing: antialiased;
   }
-  code, pre {
-    font-family: 'JetBrains Mono', monospace;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+  code, pre, .font-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   }
 }
 
+/* Glassmorphism Panel */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.7);
+  background: rgba(17, 24, 39, 0.4);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 1rem;
+  transition: all 250ms ease;
 }
 
-.glow-up {
-  box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.4);
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-.glow-down {
-  box-shadow: 0 0 20px -5px rgba(239, 68, 68, 0.4);
+.glass-panel-solid {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 250ms ease;
 }
 
-.glow-degraded {
-  box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.4);
+/* Status Indicators */
+.status-indicator-up {
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+.status-indicator-down {
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+.status-indicator-degraded {
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B0F19;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1F2937;
-  border-radius: 3px;
+  background: #334155;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+  background: #475569;
 }

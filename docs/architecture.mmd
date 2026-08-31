@@ -1,0 +1,157 @@
+%% ═══════════════════════════════════════════════════════════════════════════════
+%%  UptimeMonitor — Full Backend Architecture & Data Flow
+%%  
+%%  HOW TO READ THIS DIAGRAM:
+%%  • Rounded boxes   = Backend services (your code)
+%%  • Cylinders        = Databases / data stores
+%%  • Hexagons         = Message broker (Kafka / Redpanda)
+%%  • Stadium shapes   = External systems & users
+%%  • Solid arrows (-->) = Synchronous calls (HTTP, direct function, DB query)
+%%  • Dotted arrows (-.->)  = Asynchronous messages (Kafka topics)
+%%  • Arrow labels     = What data flows through that connection
+%%
+%%  THE MAIN MONITORING LOOP (follow the numbers ①→⑦):
+%%    Scheduler → Kafka → Worker → Kafka → Evaluator → Kafka → Notifier
+%% ═══════════════════════════════════════════════════════════════════════════════
+
+graph TB
+
+  %% ─── EXTERNAL ACTORS ─────────────────────────────────────────────────────
+  
+  User([🧑‍💻 User / Frontend<br>React App])
+  Target([🌐 Monitored Targets<br>HTTP · TCP · DNS endpoints])
+  ExtWebhook([📡 Webhook Endpoint])
+  ExtSlack([💬 Slack])
+
+  %% ─── BACKEND SERVICES ────────────────────────────────────────────────────
+  
+  subgraph services [" 🖥️  Backend Services "]
+    direction TB
+
+    subgraph auth_box [" 🔐 Auth Service — :4001 "]
+      Auth(["Auth Service<br><i>Fastify + JWT + bcrypt</i>"])
+    end
+
+    subgraph api_box [" 🌐 API Service — :4000 "]
+      API(["API Service<br><i>Fastify REST API</i>"])
+    end
+
+    subgraph scheduler_box [" ⏱️ Scheduler Service "]
+      Scheduler(["Scheduler<br><i>Timer-Wheel Daemon</i>"])
+    end
+
+    subgraph worker_box [" 🔧 Worker Service "]
+      Worker(["Worker<br><i>Probe Executor</i>"])
+      Checker["checker.ts<br>HTTP · TCP · DNS probes"]
+      SSRF["ssrf.ts<br>SSRF Protection"]
+    end
+
+    subgraph evaluator_box [" 🧠 Evaluator Service "]
+      Evaluator(["Evaluator<br><i>State Machine Engine</i>"])
+    end
+
+    subgraph notifier_box [" 🔔 Notifier Service "]
+      Notifier(["Notifier<br><i>Alert Dispatcher</i>"])
+    end
+  end
+
+  %% ─── DATA STORES ─────────────────────────────────────────────────────────
+
+  subgraph datastores [" 💾 Data Stores "]
+    direction LR
+    PG[(🐘 PostgreSQL<br>TimescaleDB<br><i>:5432</i>)]
+    RD[(⚡ Redis<br><i>:6379</i>)]
+    KF{{"📨 Redpanda / Kafka<br><i>:9092</i>"}}
+  end
+
+  %% ═══════════════════════════════════════════════════════════════════════════
+  %%  CONNECTIONS — User-facing HTTP flows
+  %% ═══════════════════════════════════════════════════════════════════════════
+
+  User -- "Register / Login / Refresh<br>Profile / Change Password" --> Auth
+  User -- "CRUD Monitors<br>View Stats & Incidents<br>Manual Check Trigger" --> API
+
+  %% ═══════════════════════════════════════════════════════════════════════════
+  %%  AUTH SERVICE connections
+  %% ═══════════════════════════════════════════════════════════════════════════
+
+  Auth -- "Read/Write users table<br>Read/Write refresh_tokens table<br>Read/Write tenants table" --> PG
+
+  %% ═══════════════════════════════════════════════════════════════════════════
+  %%  API SERVICE connections
+  %% ═══════════════════════════════════════════════════════════════════════════
+
+  API -- "CRUD monitors table<br>Read check_results<br>Read/Write incidents" --> PG
+  API -- "Read monitor live state<br>(status, lastCheckedAt)" --> RD
+  API -- "① Register/unregister<br>monitors in timer wheel" --> Scheduler
+  API -- "Manual probe trigger<br>(executeSingleJob)" --> Worker
+  API -- "Process manual<br>check results" --> Evaluator
+
+  %% ═══════════════════════════════════════════════════════════════════════════
+  %%  THE MAIN MONITORING PIPELINE  ①→⑦
+  %% ═══════════════════════════════════════════════════════════════════════════
+
+  %% ① Scheduler reads all enabled monitors from DB on startup
+  Scheduler -- "② Load enabled monitors<br>(reconciliation every 5 min)" --> PG
+
+  %% ② Scheduler uses Redis sorted sets as a sharded timer wheel
+  Scheduler -- "③ Timer wheel storage<br>ZADD/ZRANGEBYSCORE<br>sched:shard:{0..15}" --> RD
+
+  %% ③ Scheduler publishes due jobs to region-specific Kafka topics
+  Scheduler -. "④ Publish CheckJob<br>→ topic: jobs.region.{region}" .-> KF
+
+  %% ④ Worker consumes jobs from its region topic
+  KF -. "⑤ Consume CheckJob<br>← topic: jobs.region.{region}" .-> Worker
+
+  %% Worker internal flow
+  Worker --> Checker
+  Checker --> SSRF
+  Worker -- "Probe target<br>HTTP / TCP / DNS" --> Target
+
+  %% ⑤ Worker saves raw results to DB
+  Worker -- "Save CheckResult<br>to check_results table" --> PG
+
+  %% ⑥ Worker publishes results to Kafka
+  Worker -. "⑥ Publish CheckResult<br>→ topic: results" .-> KF
+
+  %% ⑦ Evaluator consumes results
+  KF -. "⑦ Consume CheckResult<br>← topic: results" .-> Evaluator
+
+  %% Evaluator uses Redis for state machine
+  Evaluator -- "Read/Write monitor state<br>HMSET state:{monitorId}<br><br>Multi-region confirmation<br>HSET confirm:{id}:{window}" --> RD
+
+  %% Evaluator writes incidents to DB
+  Evaluator -- "Create/Resolve incidents<br>in incidents table" --> PG
+
+  %% Evaluator publishes alerts
+  Evaluator -. "Publish AlertEvent<br>→ topic: alerts" .-> KF
+
+  %% Notifier consumes alerts
+  KF -. "Consume AlertEvent<br>← topic: alerts" .-> Notifier
+
+  %% Notifier uses Redis for deduplication
+  Notifier -- "Idempotency check<br>SET dedup:{incidentId}:{type}<br>NX EX 3600" --> RD
+
+  %% Notifier sends external notifications
+  Notifier -- "POST webhook payload" --> ExtWebhook
+  Notifier -- "POST Slack message<br>with color-coded attachments" --> ExtSlack
+
+  %% ═══════════════════════════════════════════════════════════════════════════
+  %%  STYLING
+  %% ═══════════════════════════════════════════════════════════════════════════
+
+  classDef service fill:#4F46E5,stroke:#3730A3,color:#fff,stroke-width:2px
+  classDef authSvc fill:#7C3AED,stroke:#5B21B6,color:#fff,stroke-width:2px
+  classDef workerInt fill:#6366F1,stroke:#4338CA,color:#fff,stroke-width:1px
+  classDef database fill:#0D9488,stroke:#0F766E,color:#fff,stroke-width:2px
+  classDef broker fill:#EA580C,stroke:#C2410C,color:#fff,stroke-width:2px
+  classDef external fill:#64748B,stroke:#475569,color:#fff,stroke-width:2px
+  classDef subgraphStyle fill:#F8FAFC,stroke:#CBD5E1,color:#1E293B,stroke-width:1px
+
+  class Auth authSvc
+  class API,Scheduler,Evaluator,Notifier service
+  class Worker service
+  class Checker,SSRF workerInt
+  class PG,RD database
+  class KF broker
+  class User,Target,ExtWebhook,ExtSlack external

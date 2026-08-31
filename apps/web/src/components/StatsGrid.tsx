@@ -9,7 +9,7 @@ interface StatsGridProps {
 export const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+      <div className="glass-panel p-5 relative overflow-hidden group">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-gray-400">Global Uptime</span>
           <Activity className="w-4 h-4 text-emerald-400" />
@@ -20,7 +20,7 @@ export const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
           </span>
           <span className="ml-2 text-xs text-emerald-400 font-medium">SLA Target 99.95%</span>
         </div>
-        <div className="w-full bg-gray-800 h-1.5 rounded-full mt-4 overflow-hidden">
+        <div className="w-full bg-[#1E293B] h-1.5 rounded-full mt-4 overflow-hidden">
           <div
             className="bg-emerald-500 h-full rounded-full transition-all duration-500"
             style={{ width: `${stats?.uptimePercentage ?? 100}%` }}
@@ -28,10 +28,10 @@ export const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
         </div>
       </div>
 
-      <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+      <div className="glass-panel p-5 relative overflow-hidden group">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-gray-400">Active Monitors</span>
-          <Server className="w-4 h-4 text-blue-400" />
+          <Server className="w-4 h-4 text-[#2563EB]" />
         </div>
         <div className="mt-3 flex items-baseline">
           <span className="text-3xl font-extrabold text-white">{stats?.totalMonitors ?? 0}</span>
@@ -47,7 +47,7 @@ export const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
         </div>
       </div>
 
-      <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+      <div className="glass-panel p-5 relative overflow-hidden group">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-gray-400">Avg Latency</span>
           <Zap className="w-4 h-4 text-amber-400" />
@@ -61,7 +61,7 @@ export const StatsGrid: React.FC<StatsGridProps> = ({ stats }) => {
         <p className="mt-4 text-xs text-gray-400">DNS + TCP + TLS + TTFB</p>
       </div>
 
-      <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+      <div className="glass-panel p-5 relative overflow-hidden group">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-gray-400">Active Incidents</span>
           <AlertTriangle className="w-4 h-4 text-rose-400" />

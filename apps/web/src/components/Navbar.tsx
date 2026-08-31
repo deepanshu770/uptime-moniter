@@ -1,6 +1,6 @@
-
 import React from 'react';
-import { ShieldCheck, RefreshCw, Plus } from 'lucide-react';
+import { ShieldCheck, RefreshCw, Plus, LogOut, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface NavbarProps {
   autoRefresh: boolean;
@@ -17,16 +17,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   onCreateSample,
   onOpenCreateModal
 }) => {
+  const { user, logout } = useAuth();
+
   return (
-    <header className="border-b border-gray-800/80 bg-gray-900/50 backdrop-blur sticky top-0 z-30">
+    <header className="border-b border-[#334155] bg-[#0F172A]/80 backdrop-blur-lg sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#2563EB] to-[#3B82F6] flex items-center justify-center shadow-lg shadow-[#2563EB]/20">
             <ShieldCheck className="w-5 h-5 text-white" />
           </div>
           <div>
-            <span className="font-bold text-lg text-white tracking-tight">UptimeGuard</span>
-            <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <span className="font-semibold text-lg text-white tracking-tight">UptimeGuard</span>
+            <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-[#2563EB]/10 text-[#3B82F6] border border-[#2563EB]/20">
               Phase 1 MVP
             </span>
           </div>
@@ -38,7 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
               autoRefresh
                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                : 'bg-gray-800 text-gray-400 border-gray-700'
+                : 'bg-[#1E293B] text-gray-400 border-[#334155]'
             }`}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${autoRefresh ? 'animate-spin' : ''}`} />
@@ -48,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {showCreateSampleBtn && (
             <button
               onClick={onCreateSample}
-              className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-medium rounded-lg text-gray-200 border border-gray-700 transition"
+              className="px-3 py-1.5 bg-[#1E293B] hover:bg-[#334155] text-xs font-medium rounded-lg text-gray-200 border border-[#334155] transition-colors"
             >
               + Load Preset Targets
             </button>
@@ -56,11 +58,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={onOpenCreateModal}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/25 transition"
+            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-[#2563EB] hover:bg-[#3B82F6] text-white shadow-lg shadow-[#2563EB]/25 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Create Monitor</span>
           </button>
+
+          <div className="flex items-center space-x-3 ml-2 pl-4 border-l border-[#334155]">
+            <div className="flex items-center space-x-2 text-sm text-gray-300">
+              <User className="w-4 h-4 text-gray-500" />
+              <span className="hidden sm:inline-block truncate max-w-[120px]">{user?.display_name || user?.email}</span>
+            </div>
+            <button
+              onClick={logout}
+              className="p-2 text-gray-400 hover:text-white bg-[#1E293B]/50 hover:bg-rose-500/20 hover:text-rose-400 rounded-lg transition-colors"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </header>

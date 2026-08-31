@@ -1,5 +1,8 @@
 import { Pool } from 'pg';
-import { Monitor, CreateMonitorInput, CheckResult, Incident, MonitorType } from '@uptime/shared-types';
+import {
+  Monitor, CreateMonitorInput, CheckResult, Incident, MonitorType,
+  User, UserRole, UserProfile, RefreshToken,
+} from '@uptime/shared-types';
 
 let pool: Pool | null = null;
 
@@ -146,6 +149,47 @@ export async function initDatabase(connectionString?: string): Promise<void> {
         payload JSONB,
         sent_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
+    `);
+
+    // Users table — stores credentials and profile for authentication
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        email TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
+        display_name TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('owner', 'admin', 'member', 'viewer')),
+        is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+        last_login_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (email)
+      );
+    `);
+
+    // Index for fast email lookups during login
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+    `);
+
+    // Refresh tokens table — stores hashed tokens for secure rotation & revocation
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS refresh_tokens (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token_hash TEXT NOT NULL,
+        user_agent TEXT,
+        ip_address TEXT,
+        expires_at TIMESTAMPTZ NOT NULL,
+        revoked_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `);
+
+    // Index for efficient refresh token lookup by user
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens (user_id);
     `);
 
     await client.query('COMMIT');
@@ -367,4 +411,205 @@ function formatIncident(row: any): Incident {
     root_cause_region: row.root_cause_region,
     error_summary: row.error_summary,
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User / Auth Database Operations
+// ─────────────────────────────────────────────────────────────────────────────
+
+function formatUser(row: any): User {
+  return {
+    id: row.id,
+    tenant_id: row.tenant_id,
+    email: row.email,
+    password_hash: row.password_hash,
+    display_name: row.display_name,
+    role: row.role as UserRole,
+    is_verified: row.is_verified,
+    last_login_at: row.last_login_at ? new Date(row.last_login_at).toISOString() : null,
+    created_at: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+    updated_at: row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString(),
+  };
+}
+
+/**
+ * Strips password_hash from a User record to produce a safe UserProfile.
+ */
+export function toUserProfile(user: User): UserProfile {
+  const { password_hash, ...profile } = user;
+  return profile;
+}
+
+/**
+ * Creates a new tenant for user registration (new organization).
+ * @returns The ID of the created tenant.
+ */
+export async function createTenant(name: string): Promise<string> {
+  const p = getPool();
+  const res = await p.query(
+    `INSERT INTO tenants (name, plan) VALUES ($1, 'free') RETURNING id`,
+    [name]
+  );
+  return res.rows[0].id;
+}
+
+/**
+ * Creates a new user account in the database.
+ * @throws If email is already registered (unique constraint violation).
+ */
+export async function createUser(params: {
+  tenantId: string;
+  email: string;
+  passwordHash: string;
+  displayName: string;
+  role?: UserRole;
+}): Promise<User> {
+  const p = getPool();
+  const res = await p.query(
+    `INSERT INTO users (tenant_id, email, password_hash, display_name, role)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING *`,
+    [params.tenantId, params.email, params.passwordHash, params.displayName, params.role || 'member']
+  );
+  return formatUser(res.rows[0]);
+}
+
+/**
+ * Finds a user by their email address.
+ * Used during login to verify credentials.
+ */
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const p = getPool();
+  const res = await p.query(`SELECT * FROM users WHERE email = $1`, [email]);
+  if (res.rows.length === 0) return null;
+  return formatUser(res.rows[0]);
+}
+
+/**
+ * Finds a user by their UUID.
+ * Used for session validation and profile retrieval.
+ */
+export async function findUserById(id: string): Promise<User | null> {
+  const p = getPool();
+  const res = await p.query(`SELECT * FROM users WHERE id = $1`, [id]);
+  if (res.rows.length === 0) return null;
+  return formatUser(res.rows[0]);
+}
+
+/**
+ * Updates user profile fields (display_name, email).
+ * Only provided fields are updated via COALESCE.
+ */
+export async function updateUserProfile(
+  userId: string,
+  fields: { displayName?: string; email?: string }
+): Promise<User | null> {
+  const p = getPool();
+  const res = await p.query(
+    `UPDATE users
+     SET display_name = COALESCE($1, display_name),
+         email = COALESCE($2, email),
+         updated_at = now()
+     WHERE id = $3
+     RETURNING *`,
+    [fields.displayName || null, fields.email || null, userId]
+  );
+  if (res.rows.length === 0) return null;
+  return formatUser(res.rows[0]);
+}
+
+/**
+ * Updates the user's password hash.
+ * Should be called after bcrypt.hash() on the new password.
+ */
+export async function updateUserPassword(userId: string, newPasswordHash: string): Promise<boolean> {
+  const p = getPool();
+  const res = await p.query(
+    `UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2`,
+    [newPasswordHash, userId]
+  );
+  return (res.rowCount ?? 0) > 0;
+}
+
+/**
+ * Records the last login timestamp for a user.
+ */
+export async function updateUserLastLogin(userId: string): Promise<void> {
+  const p = getPool();
+  await p.query(`UPDATE users SET last_login_at = now() WHERE id = $1`, [userId]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Refresh Token Database Operations
+// ─────────────────────────────────────────────────────────────────────────────
+
+function formatRefreshToken(row: any): RefreshToken {
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    token_hash: row.token_hash,
+    user_agent: row.user_agent,
+    ip_address: row.ip_address,
+    expires_at: row.expires_at ? new Date(row.expires_at).toISOString() : '',
+    revoked_at: row.revoked_at ? new Date(row.revoked_at).toISOString() : null,
+    created_at: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+  };
+}
+
+/**
+ * Persists a new hashed refresh token with metadata for audit trail.
+ */
+export async function createRefreshToken(params: {
+  userId: string;
+  tokenHash: string;
+  userAgent?: string;
+  ipAddress?: string;
+  expiresAt: Date;
+}): Promise<RefreshToken> {
+  const p = getPool();
+  const res = await p.query(
+    `INSERT INTO refresh_tokens (user_id, token_hash, user_agent, ip_address, expires_at)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING *`,
+    [params.userId, params.tokenHash, params.userAgent || null, params.ipAddress || null, params.expiresAt]
+  );
+  return formatRefreshToken(res.rows[0]);
+}
+
+/**
+ * Finds a refresh token by its ID (jti claim in the JWT).
+ * Only returns non-revoked, non-expired tokens.
+ */
+export async function findRefreshTokenById(tokenId: string): Promise<RefreshToken | null> {
+  const p = getPool();
+  const res = await p.query(
+    `SELECT * FROM refresh_tokens WHERE id = $1 AND revoked_at IS NULL AND expires_at > now()`,
+    [tokenId]
+  );
+  if (res.rows.length === 0) return null;
+  return formatRefreshToken(res.rows[0]);
+}
+
+/**
+ * Revokes a single refresh token (e.g., during token rotation).
+ */
+export async function revokeRefreshToken(tokenId: string): Promise<boolean> {
+  const p = getPool();
+  const res = await p.query(
+    `UPDATE refresh_tokens SET revoked_at = now() WHERE id = $1 AND revoked_at IS NULL`,
+    [tokenId]
+  );
+  return (res.rowCount ?? 0) > 0;
+}
+
+/**
+ * Revokes all refresh tokens for a user (e.g., on password change or "logout everywhere").
+ */
+export async function revokeAllUserRefreshTokens(userId: string): Promise<number> {
+  const p = getPool();
+  const res = await p.query(
+    `UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL`,
+    [userId]
+  );
+  return res.rowCount ?? 0;
 }

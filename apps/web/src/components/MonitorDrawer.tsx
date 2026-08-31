@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Monitor, CheckResult } from '../types';
 import { StatusBadge } from './StatusBadge';
 import { X, Play, Activity } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import {
   XAxis,
   YAxis,
@@ -26,6 +27,7 @@ export const MonitorDrawer: React.FC<MonitorDrawerProps> = ({
   onClose,
   onTriggerCheck,
 }) => {
+  const { accessToken } = useAuth();
   const [recentResults, setRecentResults] = useState<CheckResult[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +35,11 @@ export const MonitorDrawer: React.FC<MonitorDrawerProps> = ({
     let active = true;
     if (monitor) {
       setLoading(true);
-      fetch(`/v1/monitors/${monitor.id}/results?limit=25`)
+      fetch(`/v1/monitors/${monitor.id}/results?limit=25`, {
+        headers: {
+          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
+        }
+      })
         .then(res => res.json())
         .then(data => {
           if (active) {

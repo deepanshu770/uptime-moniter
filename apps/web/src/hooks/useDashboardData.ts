@@ -1,23 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
-import { SystemStats, Monitor, Incident, CheckResult } from '../types';
+import { SystemStats, Monitor, Incident } from '../types';
 
-export function useDashboardData() {
+export function useDashboardData(accessToken: string | null) {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [monitors, setMonitors] = useState<Monitor[]>([]);
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
+  const getHeaders = useCallback(() => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+    return headers;
+  }, [accessToken]);
+
   const fetchData = useCallback(async () => {
     try {
-      const statsRes = await fetch('/v1/stats');
+      const statsRes = await fetch('/v1/stats', { headers: getHeaders() });
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setStats(statsData);
         setMonitors(statsData.monitors || []);
       }
 
-      const incidentsRes = await fetch('/v1/incidents');
+      const incidentsRes = await fetch('/v1/incidents', { headers: getHeaders() });
       if (incidentsRes.ok) {
         const incData = await incidentsRes.json();
         setIncidents(incData);
@@ -27,7 +33,7 @@ export function useDashboardData() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getHeaders]);
 
   useEffect(() => {
     fetchData();
@@ -41,7 +47,7 @@ export function useDashboardData() {
   const triggerManualCheck = useCallback(async (monitorId: string, setExecutingCheckId: (id: string | null) => void, onRefreshMonitor: () => void) => {
     setExecutingCheckId(monitorId);
     try {
-      await fetch(`/v1/monitors/${monitorId}/check`, { method: 'POST' });
+      await fetch(`/v1/monitors/${monitorId}/check`, { method: 'POST', headers: getHeaders() });
       await fetchData();
       onRefreshMonitor();
     } catch (e) {
@@ -49,27 +55,27 @@ export function useDashboardData() {
     } finally {
       setExecutingCheckId(null);
     }
-  }, [fetchData]);
+  }, [fetchData, getHeaders]);
 
   const deleteMonitor = useCallback(async (monitorId: string, onDeleted: () => void) => {
     if (!confirm('Are you sure you want to delete this monitor?')) return;
     try {
-      await fetch(`/v1/monitors/${monitorId}`, { method: 'DELETE' });
+      await fetch(`/v1/monitors/${monitorId}`, { method: 'DELETE', headers: getHeaders() });
       onDeleted();
       fetchData();
     } catch (e) {
       console.error(e);
     }
-  }, [fetchData]);
+  }, [fetchData, getHeaders]);
 
   const acknowledgeIncident = useCallback(async (incidentId: string) => {
     try {
-      await fetch(`/v1/incidents/${incidentId}/acknowledge`, { method: 'POST' });
+      await fetch(`/v1/incidents/${incidentId}/acknowledge`, { method: 'POST', headers: getHeaders() });
       fetchData();
     } catch (e) {
       console.error(e);
     }
-  }, [fetchData]);
+  }, [fetchData, getHeaders]);
 
   const createSampleMonitors = useCallback(async () => {
     const samples = [
@@ -82,7 +88,7 @@ export function useDashboardData() {
     for (const s of samples) {
       await fetch('/v1/monitors', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
           name: s.name,
           type: s.type,
@@ -95,7 +101,7 @@ export function useDashboardData() {
       });
     }
     fetchData();
-  }, [fetchData]);
+  }, [fetchData, getHeaders]);
 
   return {
     stats,
