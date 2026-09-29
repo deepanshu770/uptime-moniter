@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, RefreshCw, Plus, LogOut, User } from 'lucide-react';
+import { RefreshCw, Plus, Search, Bell, HelpCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface NavbarProps {
@@ -17,20 +17,24 @@ export const Navbar: React.FC<NavbarProps> = ({
   onCreateSample,
   onOpenCreateModal
 }) => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
-    <header className="border-b border-[#334155] bg-[#0F172A]/80 backdrop-blur-lg sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#2563EB] to-[#3B82F6] flex items-center justify-center shadow-lg shadow-[#2563EB]/20">
-            <ShieldCheck className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <span className="font-semibold text-lg text-white tracking-tight">UptimeGuard</span>
-            <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-[#2563EB]/10 text-[#3B82F6] border border-[#2563EB]/20">
-              Phase 1 MVP
-            </span>
+    <header className="border-b border-light-border bg-white sticky top-0 z-30">
+      <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="flex-1 flex items-center">
+          <div className="max-w-md w-full relative hidden md:block">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search monitors, incidents..."
+              className="block w-full pl-10 pr-3 py-2 border border-light-border rounded-lg leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-light-accent focus:border-light-accent sm:text-sm transition-colors"
+            />
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <span className="text-xs text-gray-400 border border-gray-200 rounded px-1.5 py-0.5">⌘K</span>
+            </div>
           </div>
         </div>
 
@@ -39,18 +43,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
               autoRefresh
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                : 'bg-[#1E293B] text-gray-400 border-[#334155]'
+                ? 'bg-green-50 text-green-700 border-green-200'
+                : 'bg-white text-light-textMuted border-light-border hover:bg-gray-50'
             }`}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${autoRefresh ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${autoRefresh ? 'animate-spin text-green-500' : ''}`} />
             <span>{autoRefresh ? 'Live Polling (5s)' : 'Paused'}</span>
           </button>
 
           {showCreateSampleBtn && (
             <button
               onClick={onCreateSample}
-              className="px-3 py-1.5 bg-[#1E293B] hover:bg-[#334155] text-xs font-medium rounded-lg text-gray-200 border border-[#334155] transition-colors"
+              className="px-3 py-1.5 bg-white hover:bg-gray-50 text-xs font-medium rounded-lg text-light-textMain border border-light-border transition-colors"
             >
               + Load Preset Targets
             </button>
@@ -58,23 +62,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={onOpenCreateModal}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-[#2563EB] hover:bg-[#3B82F6] text-white shadow-lg shadow-[#2563EB]/25 transition-all"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-light-accent hover:bg-indigo-700 text-white shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Create Monitor</span>
           </button>
 
-          <div className="flex items-center space-x-3 ml-2 pl-4 border-l border-[#334155]">
-            <div className="flex items-center space-x-2 text-sm text-gray-300">
-              <User className="w-4 h-4 text-gray-500" />
-              <span className="hidden sm:inline-block truncate max-w-[120px]">{user?.display_name || user?.email}</span>
-            </div>
-            <button
-              onClick={logout}
-              className="p-2 text-gray-400 hover:text-white bg-[#1E293B]/50 hover:bg-rose-500/20 hover:text-rose-400 rounded-lg transition-colors"
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
+          <div className="flex items-center space-x-3 pl-4 border-l border-light-border">
+            <button className="text-gray-400 hover:text-gray-500 relative">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white"></span>
+            </button>
+            <button className="text-gray-400 hover:text-gray-500">
+              <HelpCircle className="w-5 h-5" />
             </button>
           </div>
         </div>

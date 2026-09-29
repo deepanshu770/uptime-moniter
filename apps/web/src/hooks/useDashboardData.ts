@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { SystemStats, Monitor, Incident } from '../types';
 
-export function useDashboardData(accessToken: string | null) {
+export function useDashboardData(accessToken: string | null, logout?: () => void) {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [monitors, setMonitors] = useState<Monitor[]>([]);
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -17,6 +17,10 @@ export function useDashboardData(accessToken: string | null) {
   const fetchData = useCallback(async () => {
     try {
       const statsRes = await fetch('/v1/stats', { headers: getHeaders() });
+      if (statsRes.status === 401 && logout) {
+        logout();
+        return;
+      }
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setStats(statsData);
@@ -24,6 +28,10 @@ export function useDashboardData(accessToken: string | null) {
       }
 
       const incidentsRes = await fetch('/v1/incidents', { headers: getHeaders() });
+      if (incidentsRes.status === 401 && logout) {
+        logout();
+        return;
+      }
       if (incidentsRes.ok) {
         const incData = await incidentsRes.json();
         setIncidents(incData);

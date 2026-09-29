@@ -7,17 +7,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        dark: {
-          bg: '#0B0F19',
-          card: '#111827',
-          border: '#1F2937',
-          accent: '#3B82F6',
+        light: {
+          bg: '#F3F4F6',        // Very light neutral gray
+          card: '#FFFFFF',      // White
+          border: '#E5E7EB',    // Soft neutral gray
+          textMain: '#1F2937',  // Near-black / charcoal
+          textMuted: '#6B7280', // Muted gray
+          accent: '#4F46E5',    // Indigo for active controls
         },
         status: {
-          up: '#10B981',
-          degraded: '#F59E0B',
-          down: '#EF4444',
-          suspect: '#8B5CF6',
+          up: '#10B981',        // Green accent
+          degraded: '#F59E0B',  // Amber accent
+          down: '#EF4444',      // Red accent
+          paused: '#9CA3AF',    // Gray
         }
       },
     },

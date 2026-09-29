@@ -58,34 +58,34 @@ export const MonitorDrawer: React.FC<MonitorDrawerProps> = ({
   if (!monitor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex justify-end">
-      <div className="w-full max-w-2xl bg-[#0F172A] h-full border-l border-gray-800 p-6 overflow-y-auto space-y-6 flex flex-col justify-between">
+    <div className="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm flex justify-end">
+      <div className="w-full max-w-2xl bg-white h-full border-l border-light-border p-6 overflow-y-auto space-y-6 flex flex-col justify-between shadow-2xl">
         <div>
-          <div className="flex items-center justify-between pb-4 border-b border-gray-800">
+          <div className="flex items-center justify-between pb-4 border-b border-light-border">
             <div>
               <div className="flex items-center space-x-3">
-                <h2 className="text-xl font-bold text-white">{monitor.name}</h2>
+                <h2 className="text-xl font-bold text-light-textMain">{monitor.name}</h2>
                 <StatusBadge status={monitor.status} />
               </div>
-              <p className="text-xs font-mono text-gray-400 mt-1">{monitor.target}</p>
+              <p className="text-xs font-mono text-light-textMuted mt-1">{monitor.target}</p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800"
+              className="p-2 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="mt-4 flex items-center justify-between bg-gray-900/60 p-3 rounded-xl border border-gray-800">
-            <div className="text-xs text-gray-400">
-              Checking every <span className="text-white font-semibold">{monitor.interval_seconds}s</span> from{' '}
-              <span className="text-blue-400">{monitor.regions.join(', ')}</span>
+          <div className="mt-4 flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-light-border">
+            <div className="text-xs text-light-textMuted">
+              Checking every <span className="text-light-textMain font-semibold">{monitor.interval_seconds}s</span> from{' '}
+              <span className="text-light-accent">{monitor.regions.join(', ')}</span>
             </div>
             <button
               onClick={() => onTriggerCheck(monitor.id)}
               disabled={executingCheckId === monitor.id}
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-light-accent hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
             >
               <Play className={`w-3.5 h-3.5 ${executingCheckId === monitor.id ? 'animate-spin' : ''}`} />
               <span>{executingCheckId === monitor.id ? 'Probing...' : 'Run Probe Now'}</span>
@@ -93,19 +93,19 @@ export const MonitorDrawer: React.FC<MonitorDrawerProps> = ({
           </div>
 
           <div className="mt-6 space-y-4">
-            <h3 className="text-sm font-bold text-gray-300 flex items-center space-x-2">
-              <Activity className="w-4 h-4 text-blue-400" />
+            <h3 className="text-sm font-bold text-light-textMain flex items-center space-x-2">
+              <Activity className="w-4 h-4 text-light-accent" />
               <span>Recent Probe Executions & Phase Timings</span>
             </h3>
 
             {loading && recentResults.length === 0 ? (
-              <div className="text-center py-8 text-xs text-gray-400">Loading results...</div>
+              <div className="text-center py-8 text-xs text-light-textMuted">Loading results...</div>
             ) : recentResults.length === 0 ? (
-              <div className="text-center py-8 text-xs text-gray-400">
+              <div className="text-center py-8 text-xs text-light-textMuted">
                 No execution results recorded yet. Click "Run Probe Now".
               </div>
             ) : (
-              <div className="h-64 w-full bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+              <div className="h-64 w-full bg-white p-4 rounded-xl border border-light-border shadow-sm">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[...recentResults].reverse().map(r => ({
                     time: new Date(r.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
@@ -116,13 +116,13 @@ export const MonitorDrawer: React.FC<MonitorDrawerProps> = ({
                     total: r.responseTimeMs,
                     hasError: r.status !== 0
                   }))}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
-                    <XAxis dataKey="time" stroke="#9CA3AF" fontSize={10} tickMargin={10} />
-                    <YAxis stroke="#9CA3AF" fontSize={10} tickFormatter={(val) => `${val}ms`} width={50} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+                    <XAxis dataKey="time" stroke="#6B7280" fontSize={10} tickMargin={10} />
+                    <YAxis stroke="#6B7280" fontSize={10} tickFormatter={(val) => `${val}ms`} width={50} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '0.5rem', fontSize: '12px' }}
+                      contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#E5E7EB', borderRadius: '0.5rem', fontSize: '12px', color: '#1F2937' }}
                       itemStyle={{ fontSize: '12px' }}
-                      cursor={{ fill: '#374151', opacity: 0.4 }}
+                      cursor={{ fill: '#F3F4F6' }}
                     />
                     <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                     <Bar dataKey="DNS" stackId="a" fill="#60A5FA" />
@@ -132,7 +132,7 @@ export const MonitorDrawer: React.FC<MonitorDrawerProps> = ({
                   </BarChart>
                 </ResponsiveContainer>
                 {recentResults[0]?.errorMessage && (
-                  <div className="mt-4 text-xs text-rose-400 font-mono bg-rose-950/30 p-3 rounded-lg border border-rose-900/50">
+                  <div className="mt-4 text-xs text-red-700 font-mono bg-red-50 p-3 rounded-lg border border-red-200">
                     ⚠️ Latest Error: {recentResults[0].errorMessage}
                   </div>
                 )}
@@ -141,10 +141,10 @@ export const MonitorDrawer: React.FC<MonitorDrawerProps> = ({
           </div>
         </div>
 
-        <div className="pt-4 border-t border-gray-800 flex justify-end">
+        <div className="pt-4 border-t border-light-border flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-xs font-semibold rounded-xl text-gray-300"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-xs font-semibold rounded-lg text-gray-700 transition-colors"
           >
             Close Drawer
           </button>

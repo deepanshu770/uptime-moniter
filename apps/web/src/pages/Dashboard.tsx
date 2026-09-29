@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Server, AlertTriangle, LogOut } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useAuth } from '../contexts/AuthContext';
 import { Navbar } from '../components/Navbar';
+import { Sidebar } from '../components/Sidebar';
 import { StatsGrid } from '../components/StatsGrid';
 import { MonitorList } from '../components/MonitorList';
 import { IncidentList } from '../components/IncidentList';
@@ -11,7 +11,7 @@ import { CreateMonitorModal } from '../components/CreateMonitorModal';
 import { Monitor } from '../types';
 
 export default function Dashboard() {
-  const { accessToken } = useAuth();
+  const { accessToken, logout } = useAuth();
   const {
     stats,
     monitors,
@@ -23,9 +23,9 @@ export default function Dashboard() {
     deleteMonitor,
     acknowledgeIncident,
     createSampleMonitors,
-  } = useDashboardData(accessToken);
+  } = useDashboardData(accessToken, logout);
 
-  const [activeTab, setActiveTab] = useState<'monitors' | 'incidents'>('monitors');
+  const [activeTab, setActiveTab] = useState<'monitors' | 'incidents' | string>('monitors');
   const [selectedMonitor, setSelectedMonitor] = useState<Monitor | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [executingCheckId, setExecutingCheckId] = useState<string | null>(null);
@@ -45,67 +45,63 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0F172A] text-[#F8FAFC]">
-      <Navbar
-        autoRefresh={autoRefresh}
-        setAutoRefresh={setAutoRefresh}
-        showCreateSampleBtn={monitors.length === 0}
-        onCreateSample={createSampleMonitors}
-        onOpenCreateModal={() => setShowCreateModal(true)}
-      />
+    <div className="h-screen flex overflow-hidden bg-light-bg text-light-textMain">
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Navbar
+          autoRefresh={autoRefresh}
+          setAutoRefresh={setAutoRefresh}
+          showCreateSampleBtn={monitors.length === 0}
+          onCreateSample={createSampleMonitors}
+          onOpenCreateModal={() => setShowCreateModal(true)}
+        />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <StatsGrid stats={stats} />
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-8">
+          <div className="max-w-6xl mx-auto space-y-8">
+            <header className="mb-8">
+              <h1 className="text-2xl font-bold text-light-textMain mb-1">
+                {activeTab === 'overview' ? 'Overview' : activeTab === 'monitors' ? 'Monitors' : activeTab === 'incidents' ? 'Incidents' : 'Dashboard'}
+              </h1>
+              <p className="text-sm text-light-textMuted">
+                {activeTab === 'monitors' ? 'Monitor your services, APIs, websites and infrastructure endpoints.' : 'Monitor your services and endpoints.'}
+              </p>
+            </header>
 
-        <div className="border-b border-[#334155] flex space-x-8">
-          <button
-            onClick={() => setActiveTab('monitors')}
-            className={`pb-3 text-sm font-medium flex items-center space-x-2 border-b-2 transition-colors ${
-              activeTab === 'monitors'
-                ? 'border-[#2563EB] text-[#3B82F6]'
-                : 'border-transparent text-gray-400 hover:text-gray-200'
-            }`}
-          >
-            <Server className="w-4 h-4" />
-            <span>Monitors Fleet ({monitors.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('incidents')}
-            className={`pb-3 text-sm font-medium flex items-center space-x-2 border-b-2 transition-colors ${
-              activeTab === 'incidents'
-                ? 'border-rose-500 text-rose-400'
-                : 'border-transparent text-gray-400 hover:text-gray-200'
-            }`}
-          >
-            <AlertTriangle className="w-4 h-4" />
-            <span>Incidents Log ({incidents.length})</span>
-          </button>
-        </div>
+            <StatsGrid stats={stats} />
 
-        {activeTab === 'monitors' && (
-          <div className="space-y-4">
-            <MonitorList
-              monitors={monitors}
-              executingCheckId={executingCheckId}
-              onOpenDetails={setSelectedMonitor}
-              onTriggerCheck={handleTriggerCheck}
-              onDelete={handleDeleteMonitor}
-              onCreateSample={createSampleMonitors}
-              onOpenCreateModal={() => setShowCreateModal(true)}
-            />
+            {activeTab === 'monitors' && (
+              <div className="space-y-4">
+                <MonitorList
+                  monitors={monitors}
+                  executingCheckId={executingCheckId}
+                  onOpenDetails={setSelectedMonitor}
+                  onTriggerCheck={handleTriggerCheck}
+                  onDelete={handleDeleteMonitor}
+                  onCreateSample={createSampleMonitors}
+                  onOpenCreateModal={() => setShowCreateModal(true)}
+                />
+              </div>
+            )}
+
+            {activeTab === 'incidents' && (
+              <div className="space-y-4">
+                <IncidentList
+                  incidents={incidents}
+                  monitors={monitors}
+                  onAcknowledge={acknowledgeIncident}
+                />
+              </div>
+            )}
+            
+            {activeTab !== 'monitors' && activeTab !== 'incidents' && (
+              <div className="p-8 text-center text-light-textMuted border border-dashed border-light-border rounded-xl">
+                This section is under construction.
+              </div>
+            )}
           </div>
-        )}
-
-        {activeTab === 'incidents' && (
-          <div className="space-y-4">
-            <IncidentList
-              incidents={incidents}
-              monitors={monitors}
-              onAcknowledge={acknowledgeIncident}
-            />
-          </div>
-        )}
-      </main>
+        </main>
+      </div>
 
       <MonitorDrawer
         monitor={selectedMonitor}
