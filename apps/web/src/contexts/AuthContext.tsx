@@ -4,7 +4,6 @@ interface User {
   id: string;
   email: string;
   display_name: string;
-  tenant_id: string;
   role: string;
 }
 

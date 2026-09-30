@@ -34,14 +34,12 @@ const REFRESH_TOKEN_EXPIRY = parseInt(process.env.REFRESH_TOKEN_EXPIRY_SECONDS |
  * Signs a short-lived access token containing the user's identity and role.
  *
  * @param userId   - The user's UUID (becomes the `sub` claim).
- * @param tenantId - The tenant/organization UUID (becomes the `tid` claim).
  * @param role     - The user's RBAC role.
  * @returns A signed JWT string.
  */
-export function signAccessToken(userId: string, tenantId: string, role: UserRole): string {
+export function signAccessToken(userId: string, role: UserRole): string {
   const payload: JwtAccessPayload = {
     sub: userId,
-    tid: tenantId,
     role,
     type: 'access',
   };

@@ -7,7 +7,6 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [tenantName, setTenantName] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -24,7 +23,6 @@ export default function Register() {
         email, 
         password,
         display_name: displayName || undefined,
-        tenant_name: tenantName || undefined
       });
       navigate('/');
     } catch (err: any) {
@@ -35,7 +33,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-light-bg flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-light-bg dark:bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Soft gradient backgrounds for light depth */}
       <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-100 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-100 blur-[120px] pointer-events-none" />
@@ -46,13 +44,13 @@ export default function Register() {
             <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
               <Activity className="w-8 h-8 text-light-accent" />
             </div>
-            <span className="text-2xl font-bold text-light-textMain tracking-tight">Uptime<span className="text-light-accent">Monitor</span></span>
+            <span className="text-2xl font-bold text-light-textMain dark:text-zinc-100 tracking-tight">Uptime<span className="text-light-accent">Monitor</span></span>
           </div>
         </div>
 
-        <div className="bg-white border border-light-border shadow-xl rounded-2xl p-8 relative z-10">
-          <h2 className="text-2xl font-semibold text-light-textMain mb-2">Create an account</h2>
-          <p className="text-light-textMuted mb-6 text-sm">Start monitoring your services in seconds.</p>
+        <div className="bg-white dark:bg-zinc-900 border border-light-border dark:border-zinc-800 shadow-xl rounded-2xl p-8 relative z-10">
+          <h2 className="text-2xl font-semibold text-light-textMain dark:text-zinc-100 mb-2">Create an account</h2>
+          <p className="text-light-textMuted dark:text-zinc-400 mb-6 text-sm">Start monitoring your services in seconds.</p>
 
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start space-x-3">
@@ -65,7 +63,7 @@ export default function Register() {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="email">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5" htmlFor="email">
                   Email Address *
                 </label>
                 <div className="relative">
@@ -78,14 +76,14 @@ export default function Register() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-light-border rounded-xl text-light-textMain placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-light-accent focus:border-transparent transition-all"
+                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-zinc-800/50 border border-light-border dark:border-zinc-800 rounded-xl text-light-textMain dark:text-zinc-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-light-accent focus:border-transparent transition-all"
                     placeholder="you@example.com"
                   />
                 </div>
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="password">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5" htmlFor="password">
                   Password *
                 </label>
                 <div className="relative">
@@ -99,14 +97,15 @@ export default function Register() {
                     minLength={8}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-light-border rounded-xl text-light-textMain placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-light-accent focus:border-transparent transition-all"
-                    placeholder="Min 8 characters"
+                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-zinc-800/50 border border-light-border dark:border-zinc-800 rounded-xl text-light-textMain dark:text-zinc-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-light-accent focus:border-transparent transition-all"
+                    placeholder="Min 8 chars, uppercase, lowercase, number, special"
                   />
                 </div>
               </div>
 
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="name">
+              
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1.5" htmlFor="name">
                   Full Name
                 </label>
                 <div className="relative">
@@ -118,26 +117,7 @@ export default function Register() {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-light-border rounded-xl text-light-textMain placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-light-accent focus:border-transparent transition-all"
-                    placeholder="Optional"
-                  />
-                </div>
-              </div>
-
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="tenant">
-                  Organization
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Building className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="tenant"
-                    type="text"
-                    value={tenantName}
-                    onChange={(e) => setTenantName(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-light-border rounded-xl text-light-textMain placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-light-accent focus:border-transparent transition-all"
+                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-50 dark:bg-zinc-800/50 border border-light-border dark:border-zinc-800 rounded-xl text-light-textMain dark:text-zinc-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-light-accent focus:border-transparent transition-all"
                     placeholder="Optional"
                   />
                 </div>
@@ -160,7 +140,7 @@ export default function Register() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-light-textMuted">
+          <p className="mt-6 text-center text-sm text-light-textMuted dark:text-zinc-400">
             Already have an account?{' '}
             <Link to="/login" className="font-medium text-light-accent hover:text-indigo-700 transition-colors">
               Sign in

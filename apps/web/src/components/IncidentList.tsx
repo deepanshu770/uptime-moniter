@@ -11,10 +11,10 @@ interface IncidentListProps {
 export const IncidentList: React.FC<IncidentListProps> = ({ incidents, monitors, onAcknowledge }) => {
   if (incidents.length === 0) {
     return (
-      <div className="bg-white p-12 text-center rounded-xl border border-light-border shadow-sm">
+      <div className="bg-white dark:bg-zinc-900 p-12 text-center rounded-xl border border-light-border dark:border-zinc-800 shadow-sm">
         <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
-        <h3 className="text-lg font-semibold text-light-textMain">No Incidents Detected</h3>
-        <p className="text-sm text-light-textMuted mt-1">All monitored systems operating normally.</p>
+        <h3 className="text-lg font-semibold text-light-textMain dark:text-zinc-100">No Incidents Detected</h3>
+        <p className="text-sm text-light-textMuted dark:text-zinc-400 mt-1">All monitored systems operating normally.</p>
       </div>
     );
   }
@@ -24,9 +24,9 @@ export const IncidentList: React.FC<IncidentListProps> = ({ incidents, monitors,
       {incidents.map((inc) => (
         <div
           key={inc.id}
-          className={`bg-white p-5 rounded-xl border flex items-center justify-between shadow-sm ${
+          className={`bg-white dark:bg-zinc-900 p-5 rounded-xl border flex items-center justify-between shadow-sm ${
             inc.status === 'resolved'
-              ? 'border-light-border opacity-75'
+              ? 'border-light-border dark:border-zinc-800 opacity-75'
               : 'border-red-300 bg-red-50'
           }`}
         >
@@ -41,17 +41,17 @@ export const IncidentList: React.FC<IncidentListProps> = ({ incidents, monitors,
               >
                 {inc.status}
               </span>
-              <span className="font-semibold text-light-textMain text-base">
+              <span className="font-semibold text-light-textMain dark:text-zinc-100 text-base">
                 {monitors.find((m) => m.id === inc.monitor_id)?.name || 'Monitor Incident'}
               </span>
-              <span className="text-xs text-light-textMuted font-mono">
+              <span className="text-xs text-light-textMuted dark:text-zinc-400 font-mono">
                 Root region: {inc.root_cause_region || 'us-east'}
               </span>
             </div>
-            <p className="text-xs text-light-textMain font-mono">
+            <p className="text-xs text-light-textMain dark:text-zinc-100 font-mono">
               {inc.error_summary || 'Target check failed or timed out'}
             </p>
-            <p className="text-[11px] text-light-textMuted">
+            <p className="text-[11px] text-light-textMuted dark:text-zinc-400">
               Started: {new Date(inc.started_at).toLocaleString()}
               {inc.resolved_at && ` • Resolved: ${new Date(inc.resolved_at).toLocaleString()}`}
             </p>

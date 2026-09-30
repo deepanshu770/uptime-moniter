@@ -56,7 +56,7 @@ async function verifyPhase1() {
   const job1: CheckJob = {
     jobId: `test-job-1-${Date.now()}`,
     monitorId: monitor1.id,
-    tenantId,
+    userId: tenantId,
     region: 'us-east',
     type: monitor1.type,
     target: monitor1.target,
@@ -77,7 +77,7 @@ async function verifyPhase1() {
     const job2: CheckJob = {
       jobId: `test-job-2-${i}-${Date.now()}`,
       monitorId: monitor2.id,
-      tenantId,
+      userId: tenantId,
       region: 'us-east',
       type: monitor2.type,
       target: monitor2.target,

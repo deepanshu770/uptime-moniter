@@ -6,6 +6,175 @@ import {
 
 let pool: Pool | null = null;
 
+
+export interface AnalyticsSummary {
+  avgResponseTime: number;
+  uptimePercentage: number;
+  totalChecks: number;
+  failedChecks: number;
+}
+
+export interface AnalyticsTimeseriesPoint {
+  time: string;
+  avgResponseTime: number;
+  p95: number;
+  errorCount: number;
+}
+
+export interface MonitorAnalyticsMetric {
+  monitorId: string;
+  name: string;
+  value: number; // Can be avgResponseTime or errorCount
+}
+
+export interface AnalyticsData {
+  summary: AnalyticsSummary;
+  timeseries: AnalyticsTimeseriesPoint[];
+  slowestMonitors: MonitorAnalyticsMetric[];
+  flakiestMonitors: MonitorAnalyticsMetric[];
+}
+
+
+export async function getAnalytics(userId: string, hours: number = 24, monitorId?: string): Promise<any> {
+  const pool = getPool();
+  const interval = `${hours} hours`;
+  const bucketSize = hours <= 24 ? '1 hour' : hours <= 168 ? '6 hours' : '1 day';
+
+  const baseFilter = monitorId 
+    ? `user_id = $1 AND time > NOW() - $2::interval AND monitor_id = $3`
+    : `user_id = $1 AND time > NOW() - $2::interval`;
+    
+  const prevFilter = monitorId
+    ? `user_id = $1 AND time > NOW() - (2 * $2::interval) AND time <= NOW() - $2::interval AND monitor_id = $3`
+    : `user_id = $1 AND time > NOW() - (2 * $2::interval) AND time <= NOW() - $2::interval`;
+
+  const params = monitorId ? [userId, interval, monitorId] : [userId, interval];
+  const tsParams = monitorId ? [bucketSize, userId, interval, monitorId] : [bucketSize, userId, interval];
+
+  const tsBaseFilter = monitorId
+    ? `user_id = $2 AND time > NOW() - $3::interval AND monitor_id = $4`
+    : `user_id = $2 AND time > NOW() - $3::interval`;
+
+  const queries = [
+    // 0: Current Summary
+    pool.query(`
+      SELECT 
+        COUNT(*) as total_checks,
+        SUM(CASE WHEN status != 0 THEN 1 ELSE 0 END) as failed_checks,
+        ROUND(AVG(response_time_ms)) as avg_response_time,
+        percentile_cont(0.95) WITHIN GROUP (ORDER BY response_time_ms) AS p95_ms,
+        percentile_cont(0.99) WITHIN GROUP (ORDER BY response_time_ms) AS p99_ms,
+        MIN(tls_expiry_days) as tls_expiry_days
+      FROM check_results WHERE ${baseFilter}
+    `, params),
+    
+    // 1: Previous Summary (for deltas)
+    pool.query(`
+      SELECT 
+        COUNT(*) as total_checks,
+        SUM(CASE WHEN status != 0 THEN 1 ELSE 0 END) as failed_checks,
+        ROUND(AVG(response_time_ms)) as avg_response_time
+      FROM check_results WHERE ${prevFilter}
+    `, params),
+
+    // 2: Timeseries
+    pool.query(`
+      SELECT 
+        time_bucket($1::interval, time) AS bucket,
+        ROUND(AVG(response_time_ms)) AS total_ms,
+        ROUND(AVG(dns_ms)) AS dns_ms,
+        ROUND(AVG(tcp_ms)) AS tcp_ms,
+        ROUND(AVG(tls_ms)) AS tls_ms,
+        ROUND(AVG(ttfb_ms)) AS ttfb_ms,
+        ROUND(AVG(download_ms)) AS download_ms,
+        percentile_cont(0.95) WITHIN GROUP (ORDER BY response_time_ms) AS p95_ms,
+        percentile_cont(0.99) WITHIN GROUP (ORDER BY response_time_ms) AS p99_ms,
+        SUM(CASE WHEN status != 0 THEN 1 ELSE 0 END) AS error_count
+      FROM check_results WHERE ${tsBaseFilter}
+      GROUP BY bucket ORDER BY bucket ASC
+    `, tsParams),
+
+    // 3: Regional Stats
+    pool.query(`
+      SELECT region, ROUND(AVG(response_time_ms)) AS avg_latency
+      FROM check_results WHERE ${baseFilter}
+      GROUP BY region
+    `, params),
+
+    // 4: Raw Checks (Last 100)
+    pool.query(`
+      SELECT * FROM check_results WHERE ${baseFilter}
+      ORDER BY time DESC LIMIT 100
+    `, params)
+  ];
+
+  const [currSum, prevSum, tsRes, regRes, rawRes] = await Promise.all(queries);
+
+  const total = Number(currSum.rows[0]?.total_checks || 0);
+  const failed = Number(currSum.rows[0]?.failed_checks || 0);
+  const uptime = total > 0 ? ((total - failed) / total) * 100 : 100;
+
+  const prevTotal = Number(prevSum.rows[0]?.total_checks || 0);
+  const prevFailed = Number(prevSum.rows[0]?.failed_checks || 0);
+  const prevUptime = prevTotal > 0 ? ((prevTotal - prevFailed) / prevTotal) * 100 : 100;
+  
+  const currAvg = Number(currSum.rows[0]?.avg_response_time || 0);
+  const prevAvg = Number(prevSum.rows[0]?.avg_response_time || 0);
+
+  return {
+    summary: {
+      uptimePercentage: Number(uptime.toFixed(3)),
+      uptimeDelta: Number((uptime - prevUptime).toFixed(3)),
+      avgResponseTime: currAvg,
+      latencyDelta: currAvg - prevAvg,
+      p95Latency: Number(currSum.rows[0]?.p95_ms || 0),
+      p99Latency: Number(currSum.rows[0]?.p99_ms || 0),
+      tlsExpiryDays: currSum.rows[0]?.tls_expiry_days || null,
+      activeIncidents: failed,
+      incidentsDelta: failed - prevFailed,
+      totalChecks: total,
+      failedChecks: failed
+    },
+    aggregated: tsRes.rows.map((r: any) => ({
+      time: r.bucket.toISOString(),
+      total_ms: Number(r.total_ms || 0),
+      dns_ms: Number(r.dns_ms || 0),
+      tcp_ms: Number(r.tcp_ms || 0),
+      tls_ms: Number(r.tls_ms || 0),
+      ttfb_ms: Number(r.ttfb_ms || 0),
+      download_ms: Number(r.download_ms || 0),
+      p95_ms: Number(r.p95_ms || 0),
+      p99_ms: Number(r.p99_ms || 0),
+      errorCount: Number(r.error_count || 0)
+    })),
+    regionalStats: regRes.rows.map((r: any) => ({
+      region: r.region,
+      avg_latency: Number(r.avg_latency || 0)
+    })),
+    rawChecks: rawRes.rows.map((r: any) => ({
+      id: r.id || (r.monitor_id + r.time.toISOString() + Math.random()),
+      time: r.time.toISOString(),
+      monitor_id: r.monitor_id,
+      user_id: r.user_id,
+      region: r.region,
+      status: r.status,
+      status_code: r.status_code,
+      response_time_ms: r.response_time_ms,
+      dns_ms: r.dns_ms,
+      tcp_ms: r.tcp_ms,
+      tls_ms: r.tls_ms,
+      ttfb_ms: r.ttfb_ms,
+      download_ms: r.download_ms,
+      tls_expiry_days: r.tls_expiry_days,
+      error_code: r.error_code,
+      error_message: r.error_message,
+      attempt: r.attempt,
+      worker_id: r.worker_id,
+      idempotency_key: r.idempotency_key
+    }))
+  };
+}
+
 export function getPool(connectionString?: string): Pool {
   if (!pool) {
     pool = new Pool({
@@ -40,28 +209,12 @@ export async function initDatabase(connectionString?: string): Promise<void> {
       console.warn('TimescaleDB extension not available, using standard PostgreSQL tables.');
     }
 
-    // Tenants table
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS tenants (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        name TEXT NOT NULL,
-        plan TEXT NOT NULL DEFAULT 'free',
-        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-    `);
-
-    // Ensure default tenant
-    await client.query(`
-      INSERT INTO tenants (id, name, plan)
-      VALUES ('00000000-0000-0000-0000-000000000001', 'Default Organization', 'pro')
-      ON CONFLICT (id) DO NOTHING;
-    `);
-
+    
     // Escalation policies dummy table
     await client.query(`
       CREATE TABLE IF NOT EXISTS escalation_policies (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         name TEXT NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
@@ -71,8 +224,7 @@ export async function initDatabase(connectionString?: string): Promise<void> {
     await client.query(`
       CREATE TABLE IF NOT EXISTS monitors (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-        created_by UUID NOT NULL,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         name TEXT NOT NULL,
         type TEXT NOT NULL,
         target TEXT NOT NULL,
@@ -89,17 +241,13 @@ export async function initDatabase(connectionString?: string): Promise<void> {
       );
     `);
 
-    // Add index for created_by
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_monitors_created_by ON monitors (created_by);
-    `);
 
     // Check Results table
     await client.query(`
       CREATE TABLE IF NOT EXISTS check_results (
         time TIMESTAMPTZ NOT NULL DEFAULT now(),
         monitor_id UUID NOT NULL,
-        tenant_id UUID NOT NULL,
+        user_id UUID NOT NULL,
         region TEXT NOT NULL,
         status SMALLINT NOT NULL,
         status_code INT,
@@ -108,12 +256,21 @@ export async function initDatabase(connectionString?: string): Promise<void> {
         tcp_ms INT NOT NULL DEFAULT 0,
         tls_ms INT NOT NULL DEFAULT 0,
         ttfb_ms INT NOT NULL DEFAULT 0,
+        download_ms INT NOT NULL DEFAULT 0,
+        tls_expiry_days INT,
         error_code TEXT,
         error_message TEXT,
         attempt SMALLINT NOT NULL DEFAULT 1,
         worker_id TEXT NOT NULL,
         idempotency_key TEXT
       );
+    `);
+
+    // Add new columns if table already exists (for existing instances)
+    await client.query(`
+      ALTER TABLE check_results
+      ADD COLUMN IF NOT EXISTS download_ms INT NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS tls_expiry_days INT;
     `);
 
     // Convert check_results into Hypertable if TimescaleDB is present
@@ -132,7 +289,7 @@ export async function initDatabase(connectionString?: string): Promise<void> {
     await client.query(`
       CREATE TABLE IF NOT EXISTS incidents (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         monitor_id UUID NOT NULL REFERENCES monitors(id) ON DELETE CASCADE,
         status TEXT NOT NULL CHECK (status IN ('open', 'acknowledged', 'resolved')),
         severity TEXT NOT NULL DEFAULT 'critical',
@@ -146,6 +303,14 @@ export async function initDatabase(connectionString?: string): Promise<void> {
 
     // Notification Log table
     await client.query(`
+      CREATE TABLE IF NOT EXISTS notification_channels (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        channel_type TEXT NOT NULL,
+        webhook_url TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+
       CREATE TABLE IF NOT EXISTS notification_logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         incident_id UUID NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
@@ -161,7 +326,7 @@ export async function initDatabase(connectionString?: string): Promise<void> {
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         email TEXT NOT NULL,
         password_hash TEXT NOT NULL,
         display_name TEXT NOT NULL,
@@ -207,14 +372,13 @@ export async function initDatabase(connectionString?: string): Promise<void> {
   }
 }
 
-export async function createMonitor(tenantId: string, userId: string, input: CreateMonitorInput): Promise<Monitor> {
+export async function createMonitor(userId: string, input: CreateMonitorInput): Promise<Monitor> {
   const p = getPool();
   const res = await p.query(
-    `INSERT INTO monitors (tenant_id, created_by, name, type, target, interval_seconds, timeout_ms, regions, confirm_quorum, confirm_regions, enabled, config, escalation_policy_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    `INSERT INTO monitors (user_id, name, type, target, interval_seconds, timeout_ms, regions, confirm_quorum, confirm_regions, enabled, config, escalation_policy_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      RETURNING *`,
     [
-      tenantId,
       userId,
       input.name,
       input.type,
@@ -232,11 +396,11 @@ export async function createMonitor(tenantId: string, userId: string, input: Cre
   return formatMonitor(res.rows[0]);
 }
 
-export async function listMonitors(tenantId: string): Promise<Monitor[]> {
+export async function listMonitors(userId: string): Promise<Monitor[]> {
   const p = getPool();
   const res = await p.query(
-    `SELECT * FROM monitors WHERE tenant_id = $1 ORDER BY created_at DESC`,
-    [tenantId]
+    `SELECT * FROM monitors WHERE user_id = $1 ORDER BY created_at DESC`,
+    [userId]
   );
   return res.rows.map(formatMonitor);
 }
@@ -294,12 +458,12 @@ export async function deleteMonitor(id: string): Promise<boolean> {
 export async function insertCheckResult(result: CheckResult): Promise<void> {
   const p = getPool();
   await p.query(
-    `INSERT INTO check_results (time, monitor_id, tenant_id, region, status, status_code, response_time_ms, dns_ms, tcp_ms, tls_ms, ttfb_ms, error_code, error_message, attempt, worker_id, idempotency_key)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+    `INSERT INTO check_results (time, monitor_id, user_id, region, status, status_code, response_time_ms, dns_ms, tcp_ms, tls_ms, ttfb_ms, download_ms, tls_expiry_days, error_code, error_message, attempt, worker_id, idempotency_key)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
     [
       result.time,
       result.monitorId,
-      result.tenantId,
+      result.userId,
       result.region,
       result.status,
       result.statusCode || null,
@@ -308,6 +472,8 @@ export async function insertCheckResult(result: CheckResult): Promise<void> {
       result.timings.tcp_ms,
       result.timings.tls_ms,
       result.timings.ttfb_ms,
+      result.timings.download_ms,
+      result.tlsExpiryDays || null,
       result.errorCode || null,
       result.errorMessage || null,
       result.attempt,
@@ -326,7 +492,7 @@ export async function getRecentCheckResults(monitorId: string, limit = 50): Prom
   return res.rows.map((row) => ({
     jobId: row.idempotency_key || '',
     monitorId: row.monitor_id,
-    tenantId: row.tenant_id,
+    userId: row.user_id,
     region: row.region,
     time: row.time.toISOString(),
     status: row.status,
@@ -337,8 +503,10 @@ export async function getRecentCheckResults(monitorId: string, limit = 50): Prom
       tcp_ms: row.tcp_ms,
       tls_ms: row.tls_ms,
       ttfb_ms: row.ttfb_ms,
+      download_ms: row.download_ms,
       total_ms: row.response_time_ms,
     },
+    tlsExpiryDays: row.tls_expiry_days,
     errorCode: row.error_code,
     errorMessage: row.error_message,
     attempt: row.attempt,
@@ -350,11 +518,11 @@ export async function getRecentCheckResults(monitorId: string, limit = 50): Prom
 export async function createIncident(incident: Partial<Incident>): Promise<Incident> {
   const p = getPool();
   const res = await p.query(
-    `INSERT INTO incidents (tenant_id, monitor_id, status, severity, started_at, root_cause_region, error_summary)
+    `INSERT INTO incidents (user_id, monitor_id, status, severity, started_at, root_cause_region, error_summary)
      VALUES ($1, $2, $3, $4, COALESCE($5, now()), $6, $7)
      RETURNING *`,
     [
-      incident.tenant_id,
+      incident.user_id,
       incident.monitor_id,
       incident.status || 'open',
       incident.severity || 'critical',
@@ -376,11 +544,11 @@ export async function resolveIncident(incidentId: string): Promise<Incident | nu
   return formatIncident(res.rows[0]);
 }
 
-export async function listIncidents(tenantId: string, limit = 20): Promise<Incident[]> {
+export async function listIncidents(userId: string, limit = 20): Promise<Incident[]> {
   const p = getPool();
   const res = await p.query(
-    `SELECT * FROM incidents WHERE tenant_id = $1 ORDER BY started_at DESC LIMIT $2`,
-    [tenantId, limit]
+    `SELECT * FROM incidents WHERE user_id = $1 ORDER BY started_at DESC LIMIT $2`,
+    [userId, limit]
   );
   return res.rows.map(formatIncident);
 }
@@ -388,8 +556,7 @@ export async function listIncidents(tenantId: string, limit = 20): Promise<Incid
 function formatMonitor(row: any): Monitor {
   return {
     id: row.id,
-    tenant_id: row.tenant_id,
-    created_by: row.created_by,
+    user_id: row.user_id,
     name: row.name,
     type: row.type as MonitorType,
     target: row.target,
@@ -409,7 +576,7 @@ function formatMonitor(row: any): Monitor {
 function formatIncident(row: any): Incident {
   return {
     id: row.id,
-    tenant_id: row.tenant_id,
+    user_id: row.user_id,
     monitor_id: row.monitor_id,
     status: row.status,
     severity: row.severity,
@@ -428,7 +595,6 @@ function formatIncident(row: any): Incident {
 function formatUser(row: any): User {
   return {
     id: row.id,
-    tenant_id: row.tenant_id,
     email: row.email,
     password_hash: row.password_hash,
     display_name: row.display_name,
@@ -440,33 +606,13 @@ function formatUser(row: any): User {
   };
 }
 
-/**
- * Strips password_hash from a User record to produce a safe UserProfile.
- */
-export function toUserProfile(user: User): UserProfile {
-  const { password_hash, ...profile } = user;
-  return profile;
-}
 
-/**
- * Creates a new tenant for user registration (new organization).
- * @returns The ID of the created tenant.
- */
-export async function createTenant(name: string): Promise<string> {
-  const p = getPool();
-  const res = await p.query(
-    `INSERT INTO tenants (name, plan) VALUES ($1, 'free') RETURNING id`,
-    [name]
-  );
-  return res.rows[0].id;
-}
 
 /**
  * Creates a new user account in the database.
  * @throws If email is already registered (unique constraint violation).
  */
 export async function createUser(params: {
-  tenantId: string;
   email: string;
   passwordHash: string;
   displayName: string;
@@ -474,10 +620,10 @@ export async function createUser(params: {
 }): Promise<User> {
   const p = getPool();
   const res = await p.query(
-    `INSERT INTO users (tenant_id, email, password_hash, display_name, role)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO users (email, password_hash, display_name, role)
+     VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [params.tenantId, params.email, params.passwordHash, params.displayName, params.role || 'member']
+    [params.email, params.passwordHash, params.displayName, params.role || 'member']
   );
   return formatUser(res.rows[0]);
 }
@@ -620,4 +766,27 @@ export async function revokeAllUserRefreshTokens(userId: string): Promise<number
     [userId]
   );
   return res.rowCount ?? 0;
+}
+
+export function toUserProfile(user: User): UserProfile {
+  const { password_hash, ...profile } = user;
+  return profile;
+}
+
+export async function getUserNotificationChannels(userId: string) {
+  const p = getPool();
+  const res = await p.query('SELECT * FROM notification_channels WHERE user_id = $1', [userId]);
+  return res.rows;
+}
+
+export async function logNotification(incidentId: string, channelType: string, status: string, payload: any, idempotencyKey: string) {
+  const p = getPool();
+  try {
+    await p.query(
+      'INSERT INTO notification_logs (incident_id, channel_type, status, payload, idempotency_key) VALUES ($1, $2, $3, $4, $5)',
+      [incidentId, channelType, status, JSON.stringify(payload), idempotencyKey]
+    );
+  } catch(e) {
+    console.error('Failed to log notification', e);
+  }
 }

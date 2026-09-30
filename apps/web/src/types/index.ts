@@ -23,8 +23,10 @@ export interface CheckResult {
     tcp_ms: number;
     tls_ms: number;
     ttfb_ms: number;
+    download_ms: number;
     total_ms: number;
   };
+  tlsExpiryDays?: number;
   region: string;
   errorMessage?: string;
 }

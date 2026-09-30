@@ -22,7 +22,9 @@ let kafkaConnected = false;
 const POP_DUE_LUA = `
   local due = redis.call('ZRANGEBYSCORE', KEYS[1], '-inf', ARGV[1], 'LIMIT', 0, 500)
   if #due > 0 then
-    redis.call('ZREM', KEYS[1], unpack(due))
+    for i, member in ipairs(due) do
+      redis.call('ZADD', KEYS[1], tonumber(ARGV[1]) + 60000, member)
+    end
   end
   return due
 `;
@@ -39,36 +41,61 @@ function getShardForMonitor(monitorId: string): number {
 export async function scheduleMonitor(monitor: Monitor): Promise<void> {
   const regions = monitor.regions.length > 0 ? monitor.regions : ['us-east'];
   const now = Date.now();
+  
+  await redis.set(`monitor_conf:${monitor.id}`, JSON.stringify(monitor));
 
   for (const region of regions) {
     const member = `${monitor.id}:${region}`;
     const shard = getShardForMonitor(monitor.id);
     const key = `sched:shard:${shard}`;
-    // Phase-spread initial run
     const jitter = Math.floor(Math.random() * 2000);
-    await redis.zadd(key, now + jitter, member);
+    // Only ZADD if it doesn't exist, to avoid resetting intervals
+    await redis.zadd(key, 'NX', now + jitter, member);
   }
 }
 
 export async function unscheduleMonitor(monitorId: string): Promise<void> {
   const shard = getShardForMonitor(monitorId);
   const key = `sched:shard:${shard}`;
-  const members = await redis.zrange(key, 0, -1);
-  const toRemove = members.filter((m) => m.startsWith(`${monitorId}:`));
-  if (toRemove.length > 0) {
-    await redis.zrem(key, ...toRemove);
+  
+  const confStr = await redis.get(`monitor_conf:${monitorId}`);
+  if (confStr) {
+    const conf = JSON.parse(confStr);
+    const regions = conf.regions.length > 0 ? conf.regions : ['us-east'];
+    const toRemove = regions.map((r: string) => `${monitorId}:${r}`);
+    if (toRemove.length > 0) {
+      await redis.zrem(key, ...toRemove);
+    }
+    await redis.del(`monitor_conf:${monitorId}`);
   }
 }
 
 async function tickShard(shard: number, now: number) {
+  // Shard lock to prevent multiple replicas from popping the same shard
+  const lockKey = `sched:lock:${shard}`;
+  const acquired = await redis.set(lockKey, INSTANCE_ID, 'EX', 2, 'NX');
+  if (!acquired) return;
+
   const key = `sched:shard:${shard}`;
   const due = (await redis.eval(POP_DUE_LUA, 1, key, now)) as string[];
 
-  if (!due || due.length === 0) return;
+  if (!due || due.length === 0) {
+     await redis.del(lockKey);
+     return;
+  }
 
   for (const member of due) {
     const [monitorId, region] = member.split(':');
-    const monitor = await getMonitorById(monitorId);
+    
+    let monitor: Monitor | null = null;
+    const confStr = await redis.get(`monitor_conf:${monitorId}`);
+    if (confStr) {
+      monitor = JSON.parse(confStr);
+    } else {
+      monitor = await getMonitorById(monitorId);
+      if (monitor) await redis.set(`monitor_conf:${monitorId}`, JSON.stringify(monitor));
+    }
+    
 
     if (!monitor || !monitor.enabled) {
       continue;
@@ -78,7 +105,7 @@ async function tickShard(shard: number, now: number) {
     const job: CheckJob = {
       jobId: `job-${monitorId}-${region}-${now}`,
       monitorId: monitor.id,
-      tenantId: monitor.tenant_id,
+      userId: monitor.user_id,
       region,
       type: monitor.type,
       target: monitor.target,

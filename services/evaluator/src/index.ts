@@ -17,7 +17,7 @@ const producer = kafka.producer();
 let kafkaConnected = false;
 
 export async function processCheckResult(result: CheckResult): Promise<void> {
-  const { monitorId, tenantId, status, region, errorMessage } = result;
+  const { monitorId, userId, status, region, errorMessage } = result;
   const stateKey = `state:${monitorId}`;
 
   const monitor = await getMonitorById(monitorId);
@@ -26,7 +26,7 @@ export async function processCheckResult(result: CheckResult): Promise<void> {
   const rawState = await redis.hgetall(stateKey);
   let state: MonitorState = {
     monitorId,
-    tenantId,
+    userId,
     status: (rawState.status as any) || 'UP',
     since: rawState.since || new Date().toISOString(),
     consecFail: parseInt(rawState.consecFail || '0', 10),
@@ -42,14 +42,17 @@ export async function processCheckResult(result: CheckResult): Promise<void> {
     state.consecOk = 0;
     state.consecFail += 1;
 
-    // Track region verdict in Redis window
-    const windowId = Math.floor(Date.now() / 60000);
-    const confirmKey = `confirm:${monitorId}:${windowId}`;
-    await redis.hset(confirmKey, region, 'DOWN');
+    // Track region verdict in Redis sliding window (last 60s)
+    const confirmKey = `confirm:${monitorId}`;
+    const now = Date.now();
+    await redis.hset(confirmKey, region, now.toString());
     await redis.expire(confirmKey, 120);
 
     const verdicts = await redis.hgetall(confirmKey);
-    const downRegionCount = Object.values(verdicts).filter((v) => v === 'DOWN').length;
+    const downRegionCount = Object.values(verdicts).filter((timestampStr) => {
+      const ts = parseInt(timestampStr, 10);
+      return (now - ts) <= 60000;
+    }).length;
 
     // Quorum rule: downRegionCount >= confirm_quorum or consecFail >= 3
     const quorumReached = downRegionCount >= monitor.confirm_quorum || state.consecFail >= 3;
@@ -63,7 +66,7 @@ export async function processCheckResult(result: CheckResult): Promise<void> {
       // Transition to DOWN and create Incident
       state.status = 'DOWN';
       const incident = await createIncident({
-        tenant_id: tenantId,
+        user_id: userId,
         monitor_id: monitorId,
         status: 'open',
         severity: 'critical',
@@ -77,7 +80,7 @@ export async function processCheckResult(result: CheckResult): Promise<void> {
 
       const alertEvent: AlertEvent = {
         eventId: `evt-${incident.id}-${Date.now()}`,
-        tenantId,
+        userId,
         monitorId,
         incidentId: incident.id,
         eventType: 'incident.opened',
@@ -113,7 +116,7 @@ export async function processCheckResult(result: CheckResult): Promise<void> {
 
           const alertEvent: AlertEvent = {
             eventId: `evt-res-${state.incidentId}-${Date.now()}`,
-            tenantId,
+            userId,
             monitorId,
             incidentId: state.incidentId,
             eventType: 'incident.resolved',

@@ -18,12 +18,12 @@ export async function executeCheck(job: CheckJob): Promise<CheckResult> {
     return {
       jobId: job.jobId,
       monitorId: job.monitorId,
-      tenantId: job.tenantId,
+      userId: job.userId,
       region: job.region,
       time: startTime,
       status: 2, // DOWN
       responseTimeMs: 0,
-      timings: { dns_ms: 0, tcp_ms: 0, tls_ms: 0, ttfb_ms: 0, total_ms: 0 },
+      timings: { dns_ms: 0, tcp_ms: 0, tls_ms: 0, ttfb_ms: 0, download_ms: 0, total_ms: 0 },
       errorCode: 'SSRF_BLOCKED',
       errorMessage: ssrfRes.error || 'SSRF Security Violation',
       failedAssertions: [ssrfRes.error || 'SSRF Violation'],
@@ -47,116 +47,99 @@ export async function executeCheck(job: CheckJob): Promise<CheckResult> {
   }
 }
 
+import { runHttpRequest, checkAssertions, performExtractions, replaceContextVariables } from './httpRunner.js';
+
 async function executeHttpCheck(job: CheckJob, startTime: string): Promise<CheckResult> {
-  const startTotal = performance.now();
-  let dnsTime = 0;
-  let tcpTime = 0;
-  let tlsTime = 0;
-  let ttfbTime = 0;
-  let responseStatusCode = 0;
-  let bodyText = '';
+  const steps = job.config.steps && job.config.steps.length > 0
+    ? job.config.steps
+    : [{
+        name: 'Main Check',
+        method: job.config.method || 'GET',
+        url: job.target,
+        headers: job.config.headers || {},
+        body: job.config.body,
+        assertions: job.config.assertions || [{ type: 'status', op: 'equals', value: 200 }]
+      }];
 
-  try {
-    const { gotScraping } = await import('got-scraping');
+  let totalMs = 0;
+  const timings: PhaseTimings = { dns_ms: 0, tcp_ms: 0, tls_ms: 0, ttfb_ms: 0, download_ms: 0, total_ms: 0 };
+  const context: Record<string, string> = {};
+  let tlsExpiryDays: number | undefined;
+  let finalStatusCode = 0;
+  let failedAssertions: string[] = [];
+
+  for (const step of steps) {
+    const startStep = performance.now();
+    const url = replaceContextVariables(step.url, context);
+    const method = replaceContextVariables(step.method || 'GET', context);
+    const body = step.body ? replaceContextVariables(step.body, context) : undefined;
     
-    const response = await gotScraping({
-      url: job.target,
-      method: (job.config.method || 'GET') as any,
-      body: job.config.body,
-      headers: job.config.headers || {},
-      timeout: { request: job.timeoutMs },
-      retry: { limit: 0 },
-      throwHttpErrors: false,
-    });
+    const headers: Record<string, string> = {};
+    for (const [k, v] of Object.entries(step.headers || {})) {
+      headers[k] = replaceContextVariables(v, context);
+    }
 
-    responseStatusCode = response.statusCode;
-    bodyText = response.body;
-
-    const timingsObj = response.timings?.phases;
-    if (timingsObj) {
-      dnsTime = timingsObj.dns || 0;
-      tcpTime = timingsObj.tcp || 0;
-      tlsTime = timingsObj.tls || 0;
-      ttfbTime = timingsObj.firstByte || 0;
+    const res = await runHttpRequest(url, method, headers, body, job.timeoutMs);
+    
+    // Accumulate total timings across all steps (for simplicity)
+    timings.dns_ms += res.timings.dns_ms;
+    timings.tcp_ms += res.timings.tcp_ms;
+    timings.tls_ms += res.timings.tls_ms;
+    timings.ttfb_ms += res.timings.ttfb_ms;
+    timings.download_ms += res.timings.download_ms;
+    timings.total_ms += res.timings.total_ms;
+    
+    // Use the earliest TLS expiry if there are multiple steps
+    if (res.tlsExpiryDays !== undefined) {
+      if (tlsExpiryDays === undefined || res.tlsExpiryDays < tlsExpiryDays) tlsExpiryDays = res.tlsExpiryDays;
     }
     
-    const totalTime = Math.round(performance.now() - startTotal);
-    const timings: PhaseTimings = {
-      dns_ms: Math.round(dnsTime),
-      tcp_ms: Math.round(tcpTime),
-      tls_ms: Math.round(tlsTime),
-      ttfb_ms: Math.round(ttfbTime),
-      total_ms: totalTime,
-    };
+    finalStatusCode = res.statusCode;
 
-    // Assertions
-    const failedAssertions: string[] = [];
-    const assertions = job.config.assertions || [
-      { type: 'status', op: 'equals', value: 200 },
-    ];
-
-    for (const a of assertions) {
-      if (a.type === 'status') {
-        const expected = Number(a.value ?? 200);
-        if (response.statusCode !== expected) {
-          failedAssertions.push(`Expected HTTP status ${expected}, got ${response.statusCode}`);
-        }
-      } else if (a.type === 'body') {
-        if (a.op === 'contains' && !bodyText.includes(String(a.value))) {
-          failedAssertions.push(`Response body does not contain "${a.value}"`);
-        } else if (a.op === 'matches' && !new RegExp(String(a.value)).test(bodyText)) {
-          failedAssertions.push(`Response body does not match regex /${a.value}/`);
-        }
-      } else if (a.type === 'latency') {
-        const maxMs = a.value_ms || Number(a.value) || 2000;
-        if (totalTime > maxMs) {
-          failedAssertions.push(`Response latency (${totalTime}ms) exceeded maximum (${maxMs}ms)`);
-        }
+    // Check Assertions for this step
+    if (step.assertions) {
+      const stepFails = checkAssertions(step.assertions, res);
+      if (stepFails.length > 0) {
+        failedAssertions.push(`Step [${step.name}]: ${stepFails.join(', ')}`);
+        break; // Stop executing subsequent steps if a previous one fails its assertions
       }
     }
 
-    let status: StatusValue = 0; // UP
-    if (failedAssertions.length > 0) {
-      status = 2; // DOWN
-    } else if (totalTime > 1500) {
-      status = 1; // DEGRADED
+    if (res.error) {
+       failedAssertions.push(`Step [${step.name}] failed: ${res.error.message}`);
+       break;
     }
 
-    return {
-      jobId: job.jobId,
-      monitorId: job.monitorId,
-      tenantId: job.tenantId,
-      region: job.region,
-      time: startTime,
-      status,
-      statusCode: response.statusCode,
-      responseTimeMs: totalTime,
-      timings,
-      failedAssertions: failedAssertions.length > 0 ? failedAssertions : undefined,
-      errorMessage: failedAssertions.length > 0 ? failedAssertions.join('; ') : undefined,
-      attempt: 1,
-      workerId: WORKER_ID,
-      idempotencyKey: job.idempotencyKey,
-    };
-  } catch (err: any) {
-    const totalTime = Math.round(performance.now() - startTotal);
-    return {
-      jobId: job.jobId,
-      monitorId: job.monitorId,
-      tenantId: job.tenantId,
-      region: job.region,
-      time: startTime,
-      status: 2, // DOWN
-      responseTimeMs: totalTime,
-      timings: { dns_ms: dnsTime, tcp_ms: tcpTime, tls_ms: tlsTime, ttfb_ms: ttfbTime, total_ms: totalTime },
-      errorCode: err.code || 'HTTP_ERROR',
-      errorMessage: err.message || 'Probe execution failed',
-      failedAssertions: [err.message || 'Execution error'],
-      attempt: 1,
-      workerId: WORKER_ID,
-      idempotencyKey: job.idempotencyKey,
-    };
+    // Run Extractions for this step
+    if (step.extract) {
+      performExtractions(step.extract, res, context);
+    }
   }
+
+  let status: StatusValue = 0;
+  if (failedAssertions.length > 0) {
+    status = 2; // DOWN
+  } else if (timings.total_ms > 1500) {
+    status = 1; // DEGRADED
+  }
+
+  return {
+    jobId: job.jobId,
+    monitorId: job.monitorId,
+    userId: job.userId,
+    region: job.region,
+    time: startTime,
+    status,
+    statusCode: finalStatusCode,
+    responseTimeMs: timings.total_ms,
+    timings,
+    tlsExpiryDays,
+    failedAssertions: failedAssertions.length > 0 ? failedAssertions : undefined,
+    errorMessage: failedAssertions.length > 0 ? failedAssertions.join('; ') : undefined,
+    attempt: 1,
+    workerId: WORKER_ID,
+    idempotencyKey: job.idempotencyKey,
+  };
 }
 
 async function executeTcpCheck(job: CheckJob, startTime: string): Promise<CheckResult> {
@@ -187,12 +170,12 @@ async function executeTcpCheck(job: CheckJob, startTime: string): Promise<CheckR
     return {
       jobId: job.jobId,
       monitorId: job.monitorId,
-      tenantId: job.tenantId,
+      userId: job.userId,
       region: job.region,
       time: startTime,
       status: elapsed > 2000 ? 1 : 0,
       responseTimeMs: elapsed,
-      timings: { dns_ms: 0, tcp_ms: elapsed, tls_ms: 0, ttfb_ms: 0, total_ms: elapsed },
+      timings: { dns_ms: 0, tcp_ms: elapsed, tls_ms: 0, ttfb_ms: 0, download_ms: 0, total_ms: elapsed },
       attempt: 1,
       workerId: WORKER_ID,
       idempotencyKey: job.idempotencyKey,
@@ -202,12 +185,12 @@ async function executeTcpCheck(job: CheckJob, startTime: string): Promise<CheckR
     return {
       jobId: job.jobId,
       monitorId: job.monitorId,
-      tenantId: job.tenantId,
+      userId: job.userId,
       region: job.region,
       time: startTime,
       status: 2,
       responseTimeMs: elapsed,
-      timings: { dns_ms: 0, tcp_ms: elapsed, tls_ms: 0, ttfb_ms: 0, total_ms: elapsed },
+      timings: { dns_ms: 0, tcp_ms: elapsed, tls_ms: 0, ttfb_ms: 0, download_ms: 0, total_ms: elapsed },
       errorCode: 'TCP_CONNECT_FAIL',
       errorMessage: err.message,
       failedAssertions: [err.message],
@@ -234,12 +217,12 @@ async function executeDnsCheck(job: CheckJob, startTime: string): Promise<CheckR
     return {
       jobId: job.jobId,
       monitorId: job.monitorId,
-      tenantId: job.tenantId,
+      userId: job.userId,
       region: job.region,
       time: startTime,
       status,
       responseTimeMs: elapsed,
-      timings: { dns_ms: elapsed, tcp_ms: 0, tls_ms: 0, ttfb_ms: 0, total_ms: elapsed },
+      timings: { dns_ms: elapsed, tcp_ms: 0, tls_ms: 0, ttfb_ms: 0, download_ms: 0, total_ms: elapsed },
       failedAssertions: failedAssertions.length > 0 ? failedAssertions : undefined,
       errorMessage: failedAssertions.length > 0 ? failedAssertions.join('; ') : undefined,
       attempt: 1,
@@ -251,12 +234,12 @@ async function executeDnsCheck(job: CheckJob, startTime: string): Promise<CheckR
     return {
       jobId: job.jobId,
       monitorId: job.monitorId,
-      tenantId: job.tenantId,
+      userId: job.userId,
       region: job.region,
       time: startTime,
       status: 2,
       responseTimeMs: elapsed,
-      timings: { dns_ms: elapsed, tcp_ms: 0, tls_ms: 0, ttfb_ms: 0, total_ms: elapsed },
+      timings: { dns_ms: elapsed, tcp_ms: 0, tls_ms: 0, ttfb_ms: 0, download_ms: 0, total_ms: elapsed },
       errorCode: 'DNS_RESOLVE_FAIL',
       errorMessage: err.message,
       failedAssertions: [err.message],

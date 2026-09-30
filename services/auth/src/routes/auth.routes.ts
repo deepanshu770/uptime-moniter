@@ -18,8 +18,7 @@ import {
   RefreshTokenSchema,
 } from '@uptime/shared-types';
 import {
-  createTenant,
-  createUser,
+    createUser,
   findUserByEmail,
   updateUserLastLogin,
   toUserProfile,
@@ -98,17 +97,14 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
     }
 
     // Create tenant (organization) for this user
-    const tenantName = parsed.tenant_name || `${parsed.email.split('@')[0]}'s Organization`;
-    const tenantId = await createTenant(tenantName);
-
+        
     // Hash password with bcrypt
     const passwordHash = await hashPassword(parsed.password);
 
     // Create user record
     const displayName = parsed.display_name || parsed.email.split('@')[0];
     const user = await createUser({
-      tenantId,
-      email: parsed.email,
+            email: parsed.email,
       passwordHash,
       displayName,
       role: 'owner', // First user in a tenant is always the owner
@@ -116,7 +112,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
 
     // Generate token pair
     const { accessToken, refreshToken } = await generateTokenPair(
-      user.id, user.tenant_id, user.role, request
+      user.id, user.role, request
     );
 
     reply.status(201).send({
@@ -178,9 +174,17 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
 
     // Generate token pair
     const { accessToken, refreshToken } = await generateTokenPair(
-      user.id, user.tenant_id, user.role, request
+      user.id, user.role, request
     );
 
+    
+    reply.setCookie('refresh_token', refreshToken, {
+      path: '/v1/auth',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60
+    });
     reply.status(200).send({
       user: toUserProfile(user),
       access_token: accessToken,
@@ -249,9 +253,17 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
 
     // Issue new token pair
     const { accessToken, refreshToken } = await generateTokenPair(
-      user.id, user.tenant_id, user.role, request
+      user.id, user.role, request
     );
 
+    
+    reply.setCookie('refresh_token', refreshToken, {
+      path: '/v1/auth',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60
+    });
     reply.status(200).send({
       access_token: accessToken,
       refresh_token: refreshToken,
@@ -288,6 +300,8 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
     }
 
     // Always return 200 (don't leak whether the token was valid)
+    
+    reply.clearCookie('refresh_token', { path: '/v1/auth' });
     reply.status(200).send({ message: 'Logged out successfully' });
   });
 
@@ -307,6 +321,8 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.post('/v1/auth/logout-all', { preHandler: [authenticate] }, async (request, reply) => {
     const revokedCount = await revokeAllUserRefreshTokens(request.user.userId);
 
+    
+    reply.clearCookie('refresh_token', { path: '/v1/auth' });
     reply.status(200).send({
       message: 'All sessions revoked',
       revoked_count: revokedCount,
@@ -322,7 +338,6 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
  */
 async function generateTokenPair(
   userId: string,
-  tenantId: string,
   role: string,
   request: any,
 ): Promise<{ accessToken: string; refreshToken: string }> {
@@ -347,7 +362,7 @@ async function generateTokenPair(
   );
 
   // Sign the short-lived access token
-  const accessToken = signAccessToken(userId, tenantId, role as any);
+  const accessToken = signAccessToken(userId, role as any);
 
   return { accessToken, refreshToken };
 }

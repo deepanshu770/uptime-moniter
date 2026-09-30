@@ -13,6 +13,7 @@ import {
   getRecentCheckResults,
   listIncidents,
   resolveIncident,
+  getAnalytics,
 } from '@uptime/db';
 import { CreateMonitorSchema, CheckJob } from '@uptime/shared-types';
 import { scheduleMonitor, unscheduleMonitor } from '@uptime/scheduler';
@@ -115,37 +116,58 @@ export async function buildApp(): Promise<FastifyInstance> {
    * Retrieves high-level aggregate statistics for the entire tenant workspace.
    * Includes active incidents, total monitors, and a computed global uptime percentage.
    */
+
+  fastify.get<{ Querystring: { hours?: string, monitorId?: string } }>('/v1/analytics', async (request) => {
+    const userId = request.user.sub;
+    const hours = request.query.hours ? parseInt(request.query.hours, 10) : 24;
+    const monitorId = request.query.monitorId;
+    return await getAnalytics(userId, isNaN(hours) ? 24 : hours, monitorId);
+  });
+
   fastify.get('/v1/stats', async (request) => {
-    const tenantId = request.user.tid;
-    const monitors = await listMonitors(tenantId);
-    const incidents = await listIncidents(tenantId);
+    const userId = request.user.sub;
+    const monitors = await listMonitors(userId);
+    const incidents = await listIncidents(userId);
 
     let upCount = 0;
     let downCount = 0;
     let totalResponseTime = 0;
     let totalChecksCount = 0;
 
-    const monitorsWithState = await Promise.all(
-      monitors.map(async (m) => {
-        const state = await redis.hgetall(`state:${m.id}`);
-        const status = state.status || 'UP';
-        if (status === 'UP' || status === 'DEGRADED') upCount++;
-        if (status === 'DOWN' || status === 'SUSPECT') downCount++;
+    const pipeline = redis.pipeline();
+    monitors.forEach(m => pipeline.hgetall(`state:${m.id}`));
+    const statesRaw = await pipeline.exec();
+    
+    // Quick overall DB query for average response time (last 24h)
+    const { getPool } = require('@uptime/db');
+    const p = getPool();
+    let globalAvg = 0;
+    try {
+      const dbRes = await p.query(
+        "SELECT AVG(response_time_ms) as avg_time FROM check_results WHERE user_id = $1 AND time > NOW() - INTERVAL '24 HOURS'",
+        [userId]
+      );
+      if (dbRes.rows[0]?.avg_time) {
+        globalAvg = Math.round(Number(dbRes.rows[0].avg_time));
+      }
+    } catch (e) {
+      console.error("Failed to fetch avg response time", e);
+    }
 
-        const recent = await getRecentCheckResults(m.id, 10);
-        if (recent.length > 0) {
-          const avg = recent.reduce((acc, r) => acc + r.responseTimeMs, 0) / recent.length;
-          totalResponseTime += avg;
-          totalChecksCount++;
-        }
+    const monitorsWithState = monitors.map((m, index) => {
+      const [, state] = (statesRaw || [])[index] || [null, {} as any];
+      const status = (state as any).status || 'UP';
+      if (status === 'UP' || status === 'DEGRADED') upCount++;
+      if (status === 'DOWN' || status === 'SUSPECT') downCount++;
 
-        return {
-          ...m,
-          status,
-          lastCheckedAt: state.lastCheckedAt || null,
-        };
-      })
-    );
+      return {
+        ...m,
+        status,
+        lastCheckedAt: (state as any).lastCheckedAt || null,
+      };
+    });
+    totalChecksCount = globalAvg > 0 ? 1 : 0;
+    totalResponseTime = globalAvg;
 
     const activeIncidents = incidents.filter((i) => i.status !== 'resolved');
 
@@ -166,19 +188,20 @@ export async function buildApp(): Promise<FastifyInstance> {
    * Joins live state data from Redis to provide real-time status.
    */
   fastify.get('/v1/monitors', async (request) => {
-    const tenantId = request.user.tid;
-    const monitors = await listMonitors(tenantId);
-    return Promise.all(
-      monitors.map(async (m) => {
-        const state = await redis.hgetall(`state:${m.id}`);
-        return {
-          ...m,
-          status: state.status || 'UP',
-          lastCheckedAt: state.lastCheckedAt || null,
-          incidentId: state.incidentId || null,
-        };
-      })
-    );
+    const userId = request.user.sub;
+    const monitors = await listMonitors(userId);
+    const pipeline = redis.pipeline();
+    monitors.forEach(m => pipeline.hgetall(`state:${m.id}`));
+    const statesRaw = await pipeline.exec();
+    return monitors.map((m, idx) => {
+      const [, state] = (statesRaw || [])[idx] || [null, {} as any];
+      return {
+        ...m,
+        status: (state as any).status || 'UP',
+        lastCheckedAt: (state as any).lastCheckedAt || null,
+        incidentId: (state as any).incidentId || null,
+      };
+    });
   });
 
   /**
@@ -189,11 +212,10 @@ export async function buildApp(): Promise<FastifyInstance> {
   fastify.post('/v1/monitors', async (request, reply) => {
     // Validate request body
     const parsed = CreateMonitorSchema.parse(request.body);
-    const tenantId = request.user.tid;
     const userId = request.user.sub;
     
     // Check monitor limit (5 per user/tenant)
-    const existingMonitors = await listMonitors(tenantId);
+    const existingMonitors = await listMonitors(userId);
     if (existingMonitors.length >= 5) {
       return reply.status(403).send({
         error: 'Forbidden',
@@ -202,7 +224,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     }
 
     // Persist to Postgres
-    const monitor = await createMonitor(tenantId, userId, parsed);
+    const monitor = await createMonitor(userId, parsed);
     
     // Register monitor in the Kafka-based timer wheel scheduler
     await scheduleMonitor(monitor).catch((e) =>
@@ -213,8 +235,8 @@ export async function buildApp(): Promise<FastifyInstance> {
     const initialJob: CheckJob = {
       jobId: `init-${monitor.id}-${Date.now()}`,
       monitorId: monitor.id,
-      tenantId: monitor.tenant_id,
-      region: monitor.regions[0] || 'us-east',
+      userId: monitor.user_id,
+            region: monitor.regions[0] || 'us-east',
       type: monitor.type,
       target: monitor.target,
       timeoutMs: monitor.timeout_ms,
@@ -299,8 +321,8 @@ export async function buildApp(): Promise<FastifyInstance> {
     const job: CheckJob = {
       jobId: `manual-${id}-${Date.now()}`,
       monitorId: id,
-      tenantId: monitor.tenant_id,
-      region,
+      userId: monitor.user_id,
+            region,
       type: monitor.type,
       target: monitor.target,
       timeoutMs: monitor.timeout_ms,
@@ -333,8 +355,8 @@ export async function buildApp(): Promise<FastifyInstance> {
    * Lists historical and active incidents for the tenant.
    */
   fastify.get('/v1/incidents', async (request) => {
-    const tenantId = request.user.tid;
-    return listIncidents(tenantId, 50);
+    const userId = request.user.sub;
+    return listIncidents(userId, 50);
   });
 
   /**

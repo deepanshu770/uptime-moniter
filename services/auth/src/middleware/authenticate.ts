@@ -8,7 +8,7 @@
  * ## Usage in routes:
  * ```ts
  * fastify.get('/protected', { preHandler: [authenticate] }, async (request) => {
- *   const { userId, tenantId, role } = request.user;
+ *   const { userId, role } = request.user;
  *   // ...
  * });
  * ```
@@ -26,7 +26,6 @@ import { UserRole } from '@uptime/shared-types';
 /** Shape of the decoded user context attached to authenticated requests. */
 export interface AuthUser {
   userId: string;
-  tenantId: string;
   role: UserRole;
 }
 
@@ -66,7 +65,6 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
   // Attach decoded user context to the request for downstream handlers
   request.user = {
     userId: payload.sub,
-    tenantId: payload.tid,
     role: payload.role,
   };
 }

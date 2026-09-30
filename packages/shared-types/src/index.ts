@@ -11,18 +11,37 @@ export interface Assertion {
   value_ms?: number;
 }
 
+export interface Extraction {
+  name: string;
+  type: 'jsonpath' | 'regex' | 'header';
+  path?: string;
+  regex?: string;
+  header?: string;
+}
+
+export interface Step {
+  name: string;
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD' | 'PATCH';
+  url: string;
+  headers?: Record<string, string>;
+  body?: string;
+  assertions?: Assertion[];
+  extract?: Extraction[];
+}
+
 export interface MonitorConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD' | 'PATCH';
   headers?: Record<string, string>;
   body?: string;
   assertions?: Assertion[];
+  steps?: Step[];
   expected_dns_ip?: string;
   port?: number;
 }
 
 export interface Monitor {
   id: string;
-  tenant_id: string;
+  user_id: string;
   name: string;
   type: MonitorType;
   target: string;
@@ -34,7 +53,6 @@ export interface Monitor {
   enabled: boolean;
   config: MonitorConfig;
   escalation_policy_id?: string | null;
-  created_by: string;
   created_at: string;
   updated_at: string;
 }
@@ -42,7 +60,7 @@ export interface Monitor {
 export interface CheckJob {
   jobId: string;
   monitorId: string;
-  tenantId: string;
+  userId: string;
   region: string;
   type: MonitorType;
   target: string;
@@ -59,19 +77,21 @@ export interface PhaseTimings {
   tcp_ms: number;
   tls_ms: number;
   ttfb_ms: number;
+  download_ms: number;
   total_ms: number;
 }
 
 export interface CheckResult {
   jobId: string;
   monitorId: string;
-  tenantId: string;
+  userId: string;
   region: string;
   time: string; // ISO String
   status: StatusValue;
   statusCode?: number | null;
   responseTimeMs: number;
   timings: PhaseTimings;
+  tlsExpiryDays?: number | null;
   errorCode?: string | null;
   errorMessage?: string | null;
   failedAssertions?: string[];
@@ -84,7 +104,7 @@ export type MonitorStatusState = 'UP' | 'SUSPECT' | 'DOWN' | 'DEGRADED' | 'RECOV
 
 export interface MonitorState {
   monitorId: string;
-  tenantId: string;
+  userId: string;
   status: MonitorStatusState;
   since: string;
   consecFail: number;
@@ -97,7 +117,7 @@ export type IncidentStatus = 'open' | 'acknowledged' | 'resolved';
 
 export interface Incident {
   id: string;
-  tenant_id: string;
+  user_id: string;
   monitor_id: string;
   status: IncidentStatus;
   severity: 'warning' | 'critical';
@@ -110,7 +130,7 @@ export interface Incident {
 
 export interface AlertEvent {
   eventId: string;
-  tenantId: string;
+  userId: string;
   monitorId: string;
   incidentId: string;
   eventType: 'incident.opened' | 'incident.resolved' | 'incident.acknowledged';
@@ -147,6 +167,28 @@ export const CreateMonitorSchema = z.object({
       value: z.any().optional(),
       value_ms: z.number().optional()
     })).optional(),
+    steps: z.array(z.object({
+      name: z.string(),
+      method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH']).optional(),
+      url: z.string().url(),
+      headers: z.record(z.string()).optional(),
+      body: z.string().optional(),
+      assertions: z.array(z.object({
+        type: z.enum(['status', 'body', 'header', 'jsonpath', 'latency']),
+        op: z.enum(['equals', 'contains', 'matches', 'exists', 'lt', 'gt']),
+        path: z.string().optional(),
+        name: z.string().optional(),
+        value: z.any().optional(),
+        value_ms: z.number().optional()
+      })).optional(),
+      extract: z.array(z.object({
+        name: z.string(),
+        type: z.enum(['jsonpath', 'regex', 'header']),
+        path: z.string().optional(),
+        regex: z.string().optional(),
+        header: z.string().optional(),
+      })).optional(),
+    })).optional(),
     expected_dns_ip: z.string().optional(),
     port: z.number().optional()
   }).default({}),
@@ -165,7 +207,6 @@ export type UserRole = 'owner' | 'admin' | 'member' | 'viewer';
 /** Internal user record stored in the database (never expose password_hash to clients). */
 export interface User {
   id: string;
-  tenant_id: string;
   email: string;
   password_hash: string;
   display_name: string;
@@ -179,7 +220,6 @@ export interface User {
 /** Safe user profile returned to clients (excludes password_hash). */
 export interface UserProfile {
   id: string;
-  tenant_id: string;
   email: string;
   display_name: string;
   role: UserRole;
@@ -204,7 +244,6 @@ export interface RefreshToken {
 /** JWT access token payload. */
 export interface JwtAccessPayload {
   sub: string;        // user ID
-  tid: string;        // tenant ID
   role: UserRole;
   type: 'access';
 }
@@ -236,7 +275,7 @@ export const RegisterSchema = z.object({
     .regex(/[0-9]/, 'Password must contain at least one digit')
     .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
   display_name: z.string().min(1).max(100).optional(),
-  tenant_name: z.string().min(1).max(200).optional(),
+  
 });
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 

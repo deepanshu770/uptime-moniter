@@ -55,7 +55,7 @@ export function useDashboardData(accessToken: string | null, logout?: () => void
   const triggerManualCheck = useCallback(async (monitorId: string, setExecutingCheckId: (id: string | null) => void, onRefreshMonitor: () => void) => {
     setExecutingCheckId(monitorId);
     try {
-      await fetch(`/v1/monitors/${monitorId}/check`, { method: 'POST', headers: getHeaders() });
+      await fetch(`/v1/monitors/${monitorId}/check`, { method: 'POST', headers: getHeaders(), body: '{}' });
       await fetchData();
       onRefreshMonitor();
     } catch (e) {
@@ -68,17 +68,19 @@ export function useDashboardData(accessToken: string | null, logout?: () => void
   const deleteMonitor = useCallback(async (monitorId: string, onDeleted: () => void) => {
     if (!confirm('Are you sure you want to delete this monitor?')) return;
     try {
-      await fetch(`/v1/monitors/${monitorId}`, { method: 'DELETE', headers: getHeaders() });
+      const headers: Record<string, string> = {};
+      if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+      await fetch(`/v1/monitors/${monitorId}`, { method: 'DELETE', headers });
       onDeleted();
       fetchData();
     } catch (e) {
       console.error(e);
     }
-  }, [fetchData, getHeaders]);
+  }, [accessToken, fetchData]);
 
   const acknowledgeIncident = useCallback(async (incidentId: string) => {
     try {
-      await fetch(`/v1/incidents/${incidentId}/acknowledge`, { method: 'POST', headers: getHeaders() });
+      await fetch(`/v1/incidents/${incidentId}/acknowledge`, { method: 'POST', headers: getHeaders(), body: '{}' });
       fetchData();
     } catch (e) {
       console.error(e);

@@ -12,10 +12,12 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "playwright": "^1.63.0",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "got-scraping": "^4.2.1"
+    "got-scraping": "^4.2.1",
+    "jsonpath-plus": "^11.1.0"
   }
 }

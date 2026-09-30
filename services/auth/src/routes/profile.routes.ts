@@ -46,8 +46,7 @@ export async function profileRoutes(fastify: FastifyInstance): Promise<void> {
    * ```json
    * {
    *   "id": "uuid",
-   *   "tenant_id": "uuid",
-   *   "email": "user@example.com",
+     *   "email": "user@example.com",
    *   "display_name": "John Doe",
    *   "role": "owner",
    *   "is_verified": false,
