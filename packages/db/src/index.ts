@@ -455,13 +455,54 @@ export async function deleteMonitor(id: string): Promise<boolean> {
   return (res.rowCount ?? 0) > 0;
 }
 
+
+export async function bulkInsertCheckResults(results: CheckResult[]): Promise<void> {
+  if (results.length === 0) return;
+  const p = getPool();
+  
+  const values = [];
+  const placeholders = [];
+  
+  let i = 1;
+  for (const result of results) {
+    placeholders.push(`($${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++})`);
+    values.push(
+      new Date(result.time).toISOString(),
+      result.monitorId,
+      result.userId,
+      result.region,
+      result.status,
+      result.statusCode || null,
+      result.responseTimeMs,
+      result.timings.dns_ms,
+      result.timings.tcp_ms,
+      result.timings.tls_ms,
+      result.timings.ttfb_ms,
+      result.timings.download_ms,
+      result.tlsExpiryDays || null,
+      result.errorCode || null,
+      result.errorMessage || null,
+      result.attempt,
+      result.workerId,
+      result.idempotencyKey
+    );
+  }
+
+  const query = `
+    INSERT INTO check_results (time, monitor_id, user_id, region, status, status_code, response_time_ms, dns_ms, tcp_ms, tls_ms, ttfb_ms, download_ms, tls_expiry_days, error_code, error_message, attempt, worker_id, idempotency_key)
+    VALUES ${placeholders.join(', ')}
+  `;
+
+  await p.query(query, values);
+}
+
 export async function insertCheckResult(result: CheckResult): Promise<void> {
   const p = getPool();
   await p.query(
     `INSERT INTO check_results (time, monitor_id, user_id, region, status, status_code, response_time_ms, dns_ms, tcp_ms, tls_ms, ttfb_ms, download_ms, tls_expiry_days, error_code, error_message, attempt, worker_id, idempotency_key)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
     [
-      result.time,
+      new Date(result.time).toISOString(),
       result.monitorId,
       result.userId,
       result.region,

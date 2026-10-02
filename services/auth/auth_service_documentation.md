@@ -1,6 +1,6 @@
 # 🔐 Authentication Service — Frontend Integration Guide
 
-Complete API reference for integrating the UptimeMonitor authentication backend with your frontend application.
+Complete API reference for integrating the API Pulse authentication backend with your frontend application.
 
 ## Quick Start
 

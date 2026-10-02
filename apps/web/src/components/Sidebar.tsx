@@ -36,12 +36,10 @@ export const Sidebar: React.FC<{ activeTab: string, setActiveTab: (tab: string) 
         )}
       <div>
         <div className="p-4 border-b border-light-border dark:border-zinc-800 flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-light-accent flex items-center justify-center text-white">
-            <Radio className="w-4 h-4" />
-          </div>
+          <img src="/logo.jpg" alt="API Pulse Logo" className="w-8 h-8 rounded-lg object-cover" />
           <div>
-            <h2 className="font-semibold text-light-textMain dark:text-zinc-100 text-sm">Acme Systems</h2>
-            <p className="text-xs text-light-textMuted dark:text-zinc-400">Pro • 24 monitors</p>
+            <h2 className="font-semibold text-light-textMain dark:text-zinc-100 text-sm">API Pulse Systems</h2>
+            {/* <p className="text-xs text-light-textMuted dark:text-zinc-400">Pro • 24 monitors</p> */}
           </div>
         </div>
 

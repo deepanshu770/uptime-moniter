@@ -2,7 +2,7 @@
  * Authentication Service — Entry Point
  *
  * A dedicated Fastify microservice handling user authentication and authorization
- * for the Uptime Monitor platform.
+ * for the API Pulse platform.
  *
  * ## Architecture
  * - Runs as a standalone service on its own port (default: 4001).

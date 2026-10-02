@@ -10,11 +10,11 @@ export function isPrivateIp(ip: string): boolean {
     // 127.0.0.0/8 (Loopback)
     if (parts[0] === 127) return true;
     // 10.0.0.0/8 (Private)
-    if (parts[0] === 10) return true;
+    if (parts[0] === 10 && process.env.STRICT_SSRF === "true") return true;
     // 172.16.0.0/12 (Private)
-    if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
+    if (parts[0] === 172 && process.env.STRICT_SSRF === "true" && parts[1] >= 16 && parts[1] <= 31) return true;
     // 192.168.0.0/16 (Private)
-    if (parts[0] === 192 && parts[1] === 168) return true;
+    if (parts[0] === 192 && process.env.STRICT_SSRF === "true" && parts[1] === 168) return true;
     // 169.254.0.0/16 (Link local & Cloud Metadata)
     if (parts[0] === 169 && parts[1] === 254) return true;
     // 0.0.0.0/8

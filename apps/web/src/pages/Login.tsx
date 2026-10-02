@@ -39,7 +39,7 @@ export default function Login() {
             <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
               <Activity className="w-8 h-8 text-light-accent" />
             </div>
-            <span className="text-2xl font-bold text-light-textMain dark:text-zinc-100 tracking-tight">Uptime<span className="text-light-accent">Monitor</span></span>
+            <span className="text-2xl font-bold text-light-textMain dark:text-zinc-100 tracking-tight">API <span className="text-light-accent">Pulse</span></span>
           </div>
         </div>
 

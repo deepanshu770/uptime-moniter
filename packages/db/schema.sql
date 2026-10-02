@@ -1,5 +1,5 @@
 -- =============================================================================
--- UptimeMonitor Database Schema
+-- API Pulse Database Schema
 -- Database: PostgreSQL 16+ with TimescaleDB Extension
 -- Target Schema: public
 -- Generated from current live database state

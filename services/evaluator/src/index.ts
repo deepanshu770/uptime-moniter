@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { Kafka } from 'kafkajs';
-import { createIncident, resolveIncident, getMonitorById } from '@uptime/db';
+import { createIncident, resolveIncident, getMonitorById, bulkInsertCheckResults } from '@uptime/db';
 import { CheckResult, MonitorState, AlertEvent } from '@uptime/shared-types';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -170,17 +170,46 @@ export async function runEvaluator() {
     await consumer.subscribe({ topic: 'results', fromBeginning: false });
     kafkaConnected = true;
 
+    
+    const resultBuffer: CheckResult[] = [];
+    let lastFlush = Date.now();
+
+    const flushBuffer = async () => {
+      if (resultBuffer.length === 0) return;
+      const toInsert = [...resultBuffer];
+      resultBuffer.length = 0; // Clear immediately
+      lastFlush = Date.now();
+      
+      try {
+        await bulkInsertCheckResults(toInsert);
+        console.log(`[Evaluator] Bulk inserted ${toInsert.length} telemetry records.`);
+      } catch (err: any) {
+        console.error(`[Evaluator] Bulk insert failed: ${err.message}`);
+      }
+    };
+
+    // Flush every 2 seconds regardless of volume
+    setInterval(flushBuffer, 2000);
+
     await consumer.run({
       eachMessage: async ({ message }) => {
         if (!message.value) return;
         try {
           const result: CheckResult = JSON.parse(message.value.toString());
           await processCheckResult(result);
+          
+          // Add to bulk insert buffer
+          resultBuffer.push(result);
+          
+          if (resultBuffer.length >= 100 || Date.now() - lastFlush >= 2000) {
+            await flushBuffer();
+          }
         } catch (e: any) {
           console.error(`[Evaluator] Error processing result: ${e.message}`);
         }
       },
     });
+
     console.log('[Evaluator] Connected to Kafka. Consuming results topic.');
   } catch (err) {
     console.warn(`[Evaluator] Kafka connection unavailable (${(err as Error).message}). Evaluator running via direct call mode.`);

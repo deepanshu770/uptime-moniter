@@ -1,4 +1,4 @@
-# Uptime Monitoring Tool — Design Document
+# API Pulseing Tool — Design Document
 
 > **Design direction:** Adapt the provided Dribbble reference into an uptime-monitoring product. The reference uses a polished SaaS dashboard with a persistent left sidebar, a light neutral workspace, rounded cards, compact metric rows, status pills, and dense but readable data tables. The product should feel operational, calm, and trustworthy rather than visually noisy.
 >
@@ -489,7 +489,7 @@ A public status page should use the same design language but be simpler.
 ### Example
 
 ```text
-Acme Systems
+API Pulse Systems
 All systems operational
 
 ● API                       Operational
@@ -518,7 +518,7 @@ The sidebar follows the reference closely.
 **Product / Workspace selector**
 
 ```text
-◉ Acme Systems
+◉ API Pulse Systems
    Pro • 24 monitors
 ```
 
@@ -870,18 +870,18 @@ Avoid excessive animation in monitoring data because users often keep the dashbo
 Use realistic data when building the first prototype:
 
 ```text
-Workspace: Acme Systems
+Workspace: API Pulse Systems
 
 24 monitors       23 up       1 degraded       0 down
 99.98% uptime     84ms avg    1 active incident
 
 Monitors
 
-● Production API       api.acme.com/health     99.99%   82ms   200   12s ago
-● Web App               acme.com               100%     116ms  200   18s ago
-● Auth Service          auth.acme.com/health    99.95%   143ms  200   11s ago
-▲ Payments API          pay.acme.com/health     99.71%   812ms  200   8s ago
-● Docs                  docs.acme.com           100%     91ms   200   14s ago
+● Production API       api.API Pulse.com/health     99.99%   82ms   200   12s ago
+● Web App               API Pulse.com               100%     116ms  200   18s ago
+● Auth Service          auth.API Pulse.com/health    99.95%   143ms  200   11s ago
+▲ Payments API          pay.API Pulse.com/health     99.71%   812ms  200   8s ago
+● Docs                  docs.API Pulse.com           100%     91ms   200   14s ago
 ```
 
 An active incident example:

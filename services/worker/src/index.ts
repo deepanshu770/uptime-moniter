@@ -41,9 +41,7 @@ export async function runWorker() {
           const result = await executeCheck(job);
 
           // Save result to Postgres/TimescaleDB
-          await insertCheckResult(result).catch((e) =>
-            console.error(`[Worker] DB Insert error: ${e.message}`)
-          );
+          
 
           // Publish result to results Kafka topic
           await producer.send({
@@ -61,9 +59,7 @@ export async function runWorker() {
 // Export executeSingleJob helper for direct local testing / API manual trigger
 export async function executeSingleJob(job: CheckJob): Promise<CheckResult> {
   const result = await executeCheck(job);
-  await insertCheckResult(result).catch((e) =>
-    console.error(`[Worker] DB Insert error: ${e.message}`)
-  );
+  
   return result;
 }
 

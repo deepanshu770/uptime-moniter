@@ -6,7 +6,7 @@
 
 ---
 
-**Project:** UptimeMonitor
+**Project:** API Pulse
 **Generated:** 2026-08-30 19:06:43
 **Category:** SaaS (General)
 **Design Dials:** Variance 4/10 (Balanced / Modern) | Motion 5/10 (Standard)
