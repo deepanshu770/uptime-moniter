@@ -1,7 +1,7 @@
 import { Kafka } from 'kafkajs';
-import { insertCheckResult } from '@uptime/db';
 import { CheckJob, CheckResult } from '@uptime/shared-types';
 import { executeCheck } from './checker.js';
+import { insertCheckResult } from '@uptime/db';
 
 const KAFKA_BROKERS = (process.env.KAFKA_BROKERS || 'localhost:9092').split(',');
 const REGION = process.env.REGION || 'us-east';
@@ -40,9 +40,6 @@ export async function runWorker() {
           
           const result = await executeCheck(job);
 
-          // Save result to Postgres/TimescaleDB
-          
-
           // Publish result to results Kafka topic
           await producer.send({
             topic: 'results',
@@ -56,10 +53,12 @@ export async function runWorker() {
   }
 }
 
-// Export executeSingleJob helper for direct local testing / API manual trigger
+// Export executeSingleJob helper for direct local testing / API manual trigger / standalone mode
 export async function executeSingleJob(job: CheckJob): Promise<CheckResult> {
   const result = await executeCheck(job);
-  
+  await insertCheckResult(result).catch((e) =>
+    console.error(`[Worker] DB Insert error: ${e.message}`)
+  );
   return result;
 }
 

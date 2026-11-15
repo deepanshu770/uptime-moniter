@@ -39,7 +39,7 @@ import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import { z } from 'zod';
-import { initDatabase, getPool } from '@uptime/db';
+import { initDb, getPool } from '@uptime/db';
 import { authRoutes } from './routes/auth.routes.js';
 import { profileRoutes } from './routes/profile.routes.js';
 import { AuthError } from './lib/errors.js';
@@ -75,9 +75,9 @@ export async function buildAuthApp(): Promise<FastifyInstance> {
 
   // ── Plugins ──────────────────────────────────────────────────────────────
 
-  // CORS — allow frontend origins (restrict in production)
+  // CORS — allow frontend origins (supports credentials)
   await fastify.register(cors, {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true,
     credentials: true, // Required for httpOnly cookie-based refresh tokens
   });
 
@@ -182,7 +182,7 @@ export async function startAuthServer(): Promise<void> {
 
   try {
     // Initialize shared database (creates tables if they don't exist)
-    await initDatabase();
+    await initDb(process.env.DATABASE_URL || "postgres://postgres:postgrespassword@localhost:5432/uptime_db");
     console.log('[AUTH] Database initialized successfully.');
 
     // Build and start the Fastify application

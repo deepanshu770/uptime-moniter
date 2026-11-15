@@ -10,7 +10,6 @@
   "dependencies": {
     "@fastify/cors": "^9.0.1",
     "@uptime/db": "workspace:*",
-    "@uptime/evaluator": "workspace:*",
     "@uptime/scheduler": "workspace:*",
     "@uptime/shared-types": "workspace:*",
     "@uptime/worker": "workspace:*",

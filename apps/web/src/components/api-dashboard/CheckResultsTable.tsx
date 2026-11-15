@@ -16,7 +16,7 @@ export const CheckResultsTable: React.FC<CheckResultsTableProps> = ({ data }) =>
   return (
     <div className="bg-white dark:bg-zinc-900 border border-light-border dark:border-zinc-800 rounded-xl overflow-hidden">
       <div className="p-5 border-b border-light-border dark:border-zinc-800 flex justify-between items-center">
-        <h3 className="text-sm font-medium text-light-textMain dark:text-zinc-100">Recent Checks & Incidents</h3>
+        <h3 className="text-sm font-medium text-light-textMain dark:text-zinc-100">Recent Checks</h3>
         <label className="flex items-center space-x-2 text-sm text-light-textMuted dark:text-zinc-400 cursor-pointer">
           <input 
             type="checkbox" 
@@ -44,7 +44,7 @@ export const CheckResultsTable: React.FC<CheckResultsTableProps> = ({ data }) =>
           <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
             {filteredData.slice(0, 15).map((check) => (
               <tr 
-                key={check.id} 
+                key={check.id || check.idempotency_key || check.time} 
                 onClick={() => setSelectedCheck(check)}
                 className="hover:bg-gray-100 dark:bg-gray-100 dark:bg-zinc-800/50 cursor-pointer transition-colors"
               >

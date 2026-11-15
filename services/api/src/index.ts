@@ -1,320 +1,197 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import Redis from 'ioredis';
-import { z } from 'zod';
 import {
-  initDatabase,
-  getPool,
+  initDb,
   createMonitor,
   listMonitors,
   getMonitorById,
   updateMonitor,
   deleteMonitor,
   getRecentCheckResults,
-  listIncidents,
-  resolveIncident,
   getAnalytics,
 } from '@uptime/db';
 import { CreateMonitorSchema, CheckJob } from '@uptime/shared-types';
 import { scheduleMonitor, unscheduleMonitor } from '@uptime/scheduler';
 import { executeSingleJob } from '@uptime/worker';
-import { processCheckResult } from '@uptime/evaluator';
 import jwt from 'jsonwebtoken';
 
-// Environment variable validation
 const PORT = parseInt(process.env.PORT || '4000', 10);
 const JWT_SECRET = process.env.JWT_SECRET || 'CHANGE_ME_IN_PRODUCTION_super_secret_key_32chars!';
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const DATABASE_URL = process.env.DATABASE_URL || 'postgres://postgres:postgrespassword@localhost:5432/uptime_db';
 
 declare module 'fastify' {
   interface FastifyRequest {
     user: {
       sub: string;
-      tid: string;
-      role: string;
       type: 'access';
     };
   }
 }
 
-if (!process.env.DATABASE_URL) {
-  console.warn('[API] WARNING: DATABASE_URL is not set. Assuming database is configured via defaults.');
-}
+const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null, lazyConnect: true });
 
-// Initialize Redis client for accessing distributed state
-const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: 3 });
-
-redis.on('error', (err) => {
-  console.error('[API] Redis connection error:', err);
-});
-
-/**
- * Builds the Fastify application instance, registers plugins, and sets up routes.
- * 
- * @returns {Promise<FastifyInstance>} The configured Fastify application instance.
- */
 export async function buildApp(): Promise<FastifyInstance> {
-  const fastify = Fastify({
+  const fastify = Fastify({ 
     logger: {
       level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-      transport: process.env.NODE_ENV !== 'production' ? { target: 'pino-pretty' } : undefined,
-    },
+    } 
   });
-
+  
   await fastify.register(cors, {
-    origin: '*', // In production, this should be restricted to trusted origins
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true,
+    credentials: true,
   });
 
-  // Global Error Handler for validating Zod schemas and standardizing error responses
   fastify.setErrorHandler((error, request, reply) => {
-    if (error instanceof z.ZodError) {
-      fastify.log.warn({ err: error }, 'Validation error');
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Validation failed',
-        details: error.errors,
+    if (error.name === 'ZodError') {
+      return reply.status(400).send({ 
+        error: 'Validation Error', 
+        message: 'Invalid request data', 
+        details: JSON.parse(error.message) 
       });
     }
-    
     fastify.log.error(error);
-    reply.status(500).send({ error: 'Internal Server Error', message: error.message });
+    reply.status(error.statusCode || 500).send({ 
+      error: error.name || 'Internal Server Error',
+      message: error.message || 'An unexpected error occurred'
+    });
   });
 
-  // JWT Verification Hook for API routes
+  // JWT Authentication Pre-handler
   fastify.addHook('preHandler', async (request, reply) => {
-    if (request.url.startsWith('/v1/')) {
-      const authHeader = request.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return reply.status(401).send({ error: 'Unauthorized', message: 'Missing or invalid Authorization header' });
+    if (request.routerPath === '/health') return;
+
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return reply.status(401).send({ error: 'Missing or invalid Authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      if (decoded.type !== 'access') {
+        return reply.status(401).send({ error: 'Invalid token type' });
       }
-      const token = authHeader.substring(7);
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET, {
-          issuer: 'uptime-auth',
-          audience: 'uptime-api',
-        }) as any;
-        
-        if (decoded.type !== 'access') throw new Error('Invalid token type');
-        
-        request.user = decoded;
-      } catch (err) {
-        return reply.status(401).send({ error: 'Unauthorized', message: 'Invalid or expired token' });
-      }
+      request.user = decoded;
+    } catch (err) {
+      return reply.status(401).send({ error: 'Token invalid or expired' });
     }
   });
 
-  /**
-   * GET /health
-   * Simple health check endpoint for load balancers and orchestrators.
-   */
+  // Health check endpoint
   fastify.get('/health', async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
 
-  /**
-   * GET /v1/stats
-   * Retrieves high-level aggregate statistics for the entire tenant workspace.
-   * Includes active incidents, total monitors, and a computed global uptime percentage.
-   */
-
-  fastify.get<{ Querystring: { hours?: string, monitorId?: string } }>('/v1/analytics', async (request) => {
+  // Telemetry Analytics endpoint
+  fastify.get<{ Querystring: { hours?: string; monitorId?: string } }>('/v1/analytics', async (request) => {
     const userId = request.user.sub;
     const hours = request.query.hours ? parseInt(request.query.hours, 10) : 24;
     const monitorId = request.query.monitorId;
     return await getAnalytics(userId, isNaN(hours) ? 24 : hours, monitorId);
   });
 
+  // Dashboard Overview System Stats
   fastify.get('/v1/stats', async (request) => {
     const userId = request.user.sub;
     const monitors = await listMonitors(userId);
-    const incidents = await listIncidents(userId);
 
-    let upCount = 0;
-    let downCount = 0;
-    let totalResponseTime = 0;
-    let totalChecksCount = 0;
+    const upCount = monitors.filter(m => m.status === 'UP').length;
+    const downCount = monitors.filter(m => m.status === 'DOWN').length;
 
-    const pipeline = redis.pipeline();
-    monitors.forEach(m => pipeline.hgetall(`state:${m.id}`));
-    const statesRaw = await pipeline.exec();
-    
-    // Quick overall DB query for average response time (last 24h)
-    const { getPool } = require('@uptime/db');
-    const p = getPool();
-    let globalAvg = 0;
-    try {
-      const dbRes = await p.query(
-        "SELECT AVG(response_time_ms) as avg_time FROM check_results WHERE user_id = $1 AND time > NOW() - INTERVAL '24 HOURS'",
-        [userId]
-      );
-      if (dbRes.rows[0]?.avg_time) {
-        globalAvg = Math.round(Number(dbRes.rows[0].avg_time));
-      }
-    } catch (e) {
-      console.error("Failed to fetch avg response time", e);
-    }
-
-    const monitorsWithState = monitors.map((m, index) => {
-      const [, state] = (statesRaw || [])[index] || [null, {} as any];
-      const status = (state as any).status || 'UP';
-      if (status === 'UP' || status === 'DEGRADED') upCount++;
-      if (status === 'DOWN' || status === 'SUSPECT') downCount++;
-
-      return {
-        ...m,
-        status,
-        lastCheckedAt: (state as any).lastCheckedAt || null,
-      };
-    });
-    totalChecksCount = globalAvg > 0 ? 1 : 0;
-    totalResponseTime = globalAvg;
-
-    const activeIncidents = incidents.filter((i) => i.status !== 'resolved');
+    const analytics = await getAnalytics(userId, 24);
 
     return {
       totalMonitors: monitors.length,
       upCount,
       downCount,
-      activeIncidentsCount: activeIncidents.length,
-      avgResponseTimeMs: totalChecksCount > 0 ? Math.round(totalResponseTime / totalChecksCount) : 0,
-      uptimePercentage: monitors.length > 0 ? Number(((upCount / monitors.length) * 100).toFixed(2)) : 100,
-      monitors: monitorsWithState,
+      activeIncidentsCount: downCount,
+      avgResponseTimeMs: analytics.summary.avgResponseTime || 0,
+      uptimePercentage: analytics.summary.uptimePercentage ?? 100,
+      monitors,
     };
   });
 
-  /**
-   * GET /v1/monitors
-   * Retrieves a list of all monitors configured for the tenant.
-   * Joins live state data from Redis to provide real-time status.
-   */
+  // List all monitors for authenticated user
   fastify.get('/v1/monitors', async (request) => {
     const userId = request.user.sub;
-    const monitors = await listMonitors(userId);
-    const pipeline = redis.pipeline();
-    monitors.forEach(m => pipeline.hgetall(`state:${m.id}`));
-    const statesRaw = await pipeline.exec();
-    return monitors.map((m, idx) => {
-      const [, state] = (statesRaw || [])[idx] || [null, {} as any];
-      return {
-        ...m,
-        status: (state as any).status || 'UP',
-        lastCheckedAt: (state as any).lastCheckedAt || null,
-        incidentId: (state as any).incidentId || null,
-      };
-    });
+    return await listMonitors(userId);
   });
 
-  /**
-   * POST /v1/monitors
-   * Creates a new monitor configuration.
-   * Expects a JSON body matching the CreateMonitorSchema.
-   */
+  // Create a new monitor
   fastify.post('/v1/monitors', async (request, reply) => {
-    // Validate request body
     const parsed = CreateMonitorSchema.parse(request.body);
     const userId = request.user.sub;
     
-    // Check monitor limit (5 per user/tenant)
-    const existingMonitors = await listMonitors(userId);
-    if (existingMonitors.length >= 5) {
-      return reply.status(403).send({
-        error: 'Forbidden',
-        message: 'Monitor limit reached. Please upgrade your subscription to add more than 5 monitors.'
-      });
-    }
-
-    // Persist to Postgres
     const monitor = await createMonitor(userId, parsed);
-    
-    // Register monitor in the Kafka-based timer wheel scheduler
     await scheduleMonitor(monitor).catch((e) =>
       fastify.log.warn(`Scheduler registration warning: ${e.message}`)
     );
 
-    // Run an initial immediate check asynchronously to establish baseline status
+    // Trigger immediate first check
     const initialJob: CheckJob = {
       jobId: `init-${monitor.id}-${Date.now()}`,
       monitorId: monitor.id,
       userId: monitor.user_id,
-            region: monitor.regions[0] || 'us-east',
-      type: monitor.type,
+      region: monitor.regions[0] || 'us-east',
       target: monitor.target,
       timeoutMs: monitor.timeout_ms,
-      config: monitor.config,
       scheduledAt: Date.now(),
-      idempotencyKey: `init:${monitor.id}:${Date.now()}`,
     };
     executeSingleJob(initialJob)
-      .then((res) => processCheckResult(res))
       .catch((e) => fastify.log.error(`Initial check error: ${e.message}`));
 
     reply.status(201).send(monitor);
   });
 
-  /**
-   * GET /v1/monitors/:id
-   * Retrieves full details for a specific monitor, including its current state and recent check results.
-   */
+  // Get single monitor by ID (user isolated)
   fastify.get<{ Params: { id: string } }>('/v1/monitors/:id', async (request, reply) => {
     const { id } = request.params;
-    const monitor = await getMonitorById(id);
+    const userId = request.user.sub;
+    const monitor = await getMonitorById(id, userId);
     if (!monitor) return reply.status(404).send({ error: 'Monitor not found' });
 
-    const state = await redis.hgetall(`state:${id}`);
-    const results = await getRecentCheckResults(id, 50);
+    const results = await getRecentCheckResults(id, 50, userId);
 
     return {
       ...monitor,
-      status: state.status || 'UP',
-      state,
       recentResults: results,
     };
   });
 
-  /**
-   * PATCH /v1/monitors/:id
-   * Updates an existing monitor. 
-   * If toggled off/on, it automatically coordinates with the scheduler to pause/resume polling.
-   */
+  // Update monitor (user isolated)
   fastify.patch<{ Params: { id: string } }>('/v1/monitors/:id', async (request, reply) => {
     const { id } = request.params;
-    const updated = await updateMonitor(id, request.body as any);
+    const userId = request.user.sub;
+    const updated = await updateMonitor(id, userId, request.body as any);
     if (!updated) return reply.status(404).send({ error: 'Monitor not found' });
 
     if (updated.enabled) {
-      await scheduleMonitor(updated);
+      await scheduleMonitor(updated).catch((e) => fastify.log.warn(`Reschedule warning: ${e.message}`));
     } else {
-      await unscheduleMonitor(id);
+      await unscheduleMonitor(id).catch((e) => fastify.log.warn(`Unschedule warning: ${e.message}`));
     }
 
     return updated;
   });
 
-  /**
-   * DELETE /v1/monitors/:id
-   * Removes a monitor permanently from the database and stops its scheduled jobs.
-   */
+  // Delete monitor (user isolated)
   fastify.delete<{ Params: { id: string } }>('/v1/monitors/:id', async (request, reply) => {
     const { id } = request.params;
-    
-    // First remove from the active polling scheduler
-    await unscheduleMonitor(id);
-    
-    // Remove from database
-    const deleted = await deleteMonitor(id);
+    const userId = request.user.sub;
+    const deleted = await deleteMonitor(id, userId);
     if (!deleted) return reply.status(404).send({ error: 'Monitor not found' });
-    
+    await unscheduleMonitor(id).catch(() => {});
     return { success: true };
   });
 
-  /**
-   * POST /v1/monitors/:id/check
-   * Forces an immediate, out-of-band execution of a monitor check.
-   * Useful for user-triggered testing ("Run Probe Now").
-   */
+  // Trigger manual probe check (user isolated)
   fastify.post<{ Params: { id: string } }>('/v1/monitors/:id/check', async (request, reply) => {
     const { id } = request.params;
-    const monitor = await getMonitorById(id);
+    const userId = request.user.sub;
+    const monitor = await getMonitorById(id, userId);
     if (!monitor) return reply.status(404).send({ error: 'Monitor not found' });
 
     const region = (request.body as any)?.region || monitor.regions[0] || 'us-east';
@@ -322,65 +199,36 @@ export async function buildApp(): Promise<FastifyInstance> {
       jobId: `manual-${id}-${Date.now()}`,
       monitorId: id,
       userId: monitor.user_id,
-            region,
-      type: monitor.type,
+      region,
       target: monitor.target,
       timeoutMs: monitor.timeout_ms,
-      config: monitor.config,
       scheduledAt: Date.now(),
-      idempotencyKey: `manual:${id}:${Date.now()}`,
     };
 
-    // Await execution synchronously to return the immediate result to the client
-    const result = await executeSingleJob(job);
-    
-    // Process the result through the standard evaluation engine for state tracking
-    await processCheckResult(result);
-
-    return result;
+    return await executeSingleJob(job);
   });
 
-  /**
-   * GET /v1/monitors/:id/results
-   * Retrieves the raw chronological results of past monitor checks.
-   */
-  fastify.get<{ Params: { id: string }, Querystring: { limit?: string } }>('/v1/monitors/:id/results', async (request) => {
+  // Get recent results for monitor (user isolated)
+  fastify.get<{ Params: { id: string }; Querystring: { limit?: string } }>('/v1/monitors/:id/results', async (request, reply) => {
     const { id } = request.params;
-    const limit = parseInt(request.query.limit || '50', 10);
-    return getRecentCheckResults(id, limit);
-  });
-
-  /**
-   * GET /v1/incidents
-   * Lists historical and active incidents for the tenant.
-   */
-  fastify.get('/v1/incidents', async (request) => {
     const userId = request.user.sub;
-    return listIncidents(userId, 50);
-  });
+    const monitor = await getMonitorById(id, userId);
+    if (!monitor) return reply.status(404).send({ error: 'Monitor not found' });
 
-  /**
-   * POST /v1/incidents/:id/acknowledge
-   * Manually acknowledges and resolves an active incident.
-   */
-  fastify.post<{ Params: { id: string } }>('/v1/incidents/:id/acknowledge', async (request, reply) => {
-    const { id } = request.params;
-    const resolved = await resolveIncident(id);
-    if (!resolved) return reply.status(404).send({ error: 'Incident not found' });
-    return resolved;
+    const limit = parseInt(request.query.limit || '50', 10);
+    return await getRecentCheckResults(id, isNaN(limit) ? 50 : limit, userId);
   });
 
   return fastify;
 }
 
-/**
- * Bootstraps and starts the HTTP API Server.
- * Implements graceful shutdown logic to drain database pools and close active connections.
- */
-export async function startServer() {
+export async function startServer(): Promise<void> {
   let app: FastifyInstance | null = null;
   try {
-    await initDatabase();
+    initDb(DATABASE_URL);
+    await redis.connect().catch((err) => {
+      console.warn(`[API] Redis connection notice: ${err.message}. Continuing...`);
+    });
     console.log('[API] Database initialized successfully.');
 
     app = await buildApp();
@@ -390,33 +238,8 @@ export async function startServer() {
     console.error('[API] Server startup failed:', err);
     process.exit(1);
   }
-
-  // Graceful Shutdown logic
-  const shutdown = async (signal: string) => {
-    console.log(`\n[API] Received ${signal}. Starting graceful shutdown...`);
-    if (app) {
-      await app.close();
-      console.log('[API] HTTP server closed.');
-    }
-    
-    try {
-      const pool = getPool();
-      await pool.end();
-      console.log('[API] Database connections closed.');
-    } catch (e) {
-      console.error('[API] Error closing database pool:', e);
-    }
-    
-    redis.quit();
-    console.log('[API] Redis connection closed.');
-    process.exit(0);
-  };
-
-  process.on('SIGINT', () => shutdown('SIGINT'));
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
 }
 
-// Automatically start the server if executed directly
 if (process.env.NODE_ENV !== 'test' && require.main === module) {
   startServer();
 }

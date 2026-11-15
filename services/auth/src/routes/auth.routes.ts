@@ -107,12 +107,12 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
             email: parsed.email,
       passwordHash,
       displayName,
-      role: 'owner', // First user in a tenant is always the owner
+      
     });
 
     // Generate token pair
     const { accessToken, refreshToken } = await generateTokenPair(
-      user.id, user.role, request
+      user.id, request
     );
 
     reply.status(201).send({
@@ -174,7 +174,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
 
     // Generate token pair
     const { accessToken, refreshToken } = await generateTokenPair(
-      user.id, user.role, request
+      user.id, request
     );
 
     
@@ -253,7 +253,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
 
     // Issue new token pair
     const { accessToken, refreshToken } = await generateTokenPair(
-      user.id, user.role, request
+      user.id, request
     );
 
     
@@ -338,7 +338,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
  */
 async function generateTokenPair(
   userId: string,
-  role: string,
+  
   request: any,
 ): Promise<{ accessToken: string; refreshToken: string }> {
   // Create a placeholder record to get the UUID (used as jti)
@@ -362,7 +362,7 @@ async function generateTokenPair(
   );
 
   // Sign the short-lived access token
-  const accessToken = signAccessToken(userId, role as any);
+  const accessToken = signAccessToken(userId);
 
   return { accessToken, refreshToken };
 }

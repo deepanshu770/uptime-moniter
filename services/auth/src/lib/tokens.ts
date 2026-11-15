@@ -15,7 +15,7 @@
 
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { JwtAccessPayload, JwtRefreshPayload, UserRole } from '@uptime/shared-types';
+import { JwtAccessPayload, JwtRefreshPayload } from '@uptime/shared-types';
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 
@@ -37,10 +37,9 @@ const REFRESH_TOKEN_EXPIRY = parseInt(process.env.REFRESH_TOKEN_EXPIRY_SECONDS |
  * @param role     - The user's RBAC role.
  * @returns A signed JWT string.
  */
-export function signAccessToken(userId: string, role: UserRole): string {
+export function signAccessToken(userId: string): string {
   const payload: JwtAccessPayload = {
     sub: userId,
-    role,
     type: 'access',
   };
   return jwt.sign(payload, JWT_SECRET, {

@@ -6,7 +6,6 @@ import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { StatsGrid } from '../components/StatsGrid';
 import { MonitorList } from '../components/MonitorList';
-import { IncidentList } from '../components/IncidentList';
 import { Analytics } from '../components/Analytics';
 import { SettingsView } from '../components/SettingsView';
 import { MonitorDrawer } from '../components/MonitorDrawer';
@@ -18,13 +17,12 @@ export default function Dashboard() {
   const {
     stats,
     monitors,
-    incidents,
     autoRefresh,
     setAutoRefresh,
     fetchData,
     triggerManualCheck,
     deleteMonitor,
-    acknowledgeIncident,
+    
     createSampleMonitors,
   } = useDashboardData(accessToken, logout);
 
@@ -73,7 +71,7 @@ export default function Dashboard() {
           <div className="max-w-6xl mx-auto space-y-8">
             <header className="mb-8">
               <h1 className="text-2xl font-bold text-light-textMain dark:text-zinc-100 mb-1">
-                {activeTab === 'overview' ? 'Overview' : activeTab === 'monitors' ? 'Monitors' : activeTab === 'incidents' ? 'Incidents' : activeTab === 'analytics' ? 'Analytics' : activeTab === 'settings' ? 'Settings' : 'Dashboard'}
+                {activeTab === 'overview' ? 'Overview' : activeTab === 'monitors' ? 'Monitors' : activeTab === 'analytics' ? 'Analytics' : activeTab === 'settings' ? 'Settings' : 'Dashboard'}
               </h1>
               <p className="text-sm text-light-textMuted dark:text-zinc-400">
                 {activeTab === 'monitors' ? 'Monitor your services, APIs, websites and infrastructure endpoints.' : activeTab === 'analytics' ? 'Analyze global telemetry and identify bottlenecks.' : activeTab === 'settings' ? 'Manage your preferences.'  : 'Monitor your services and endpoints.'}
@@ -82,7 +80,7 @@ export default function Dashboard() {
 
             <StatsGrid stats={stats} />
 
-            {activeTab === 'monitors' && (
+            {(activeTab === 'overview' || activeTab === 'monitors') && (
               <div className="space-y-4">
                 <MonitorList
                   monitors={monitors}
@@ -95,16 +93,6 @@ export default function Dashboard() {
                 />
               </div>
             )}
-
-            {activeTab === 'incidents' && (
-              <div className="space-y-4">
-                <IncidentList
-                  incidents={incidents}
-                  monitors={monitors}
-                  onAcknowledge={acknowledgeIncident}
-                />
-              </div>
-            )}
             
             {activeTab === 'analytics' && (
               <div className="space-y-4">
@@ -112,15 +100,13 @@ export default function Dashboard() {
               </div>
             )}
             
-            
             {activeTab === 'settings' && (
               <div className="space-y-4">
                 <SettingsView />
               </div>
             )}
             
-            {activeTab !== 'monitors' && activeTab !== 'incidents' && activeTab !== 'analytics' && activeTab !== 'settings' && (
-
+            {activeTab !== 'overview' && activeTab !== 'monitors' && activeTab !== 'analytics' && activeTab !== 'settings' && (
               <div className="p-8 text-center text-light-textMuted dark:text-zinc-400 border border-dashed border-light-border dark:border-zinc-800 rounded-xl">
                 This section is under construction.
               </div>

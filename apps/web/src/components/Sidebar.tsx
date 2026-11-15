@@ -9,7 +9,6 @@ export const Sidebar: React.FC<{ activeTab: string, setActiveTab: (tab: string) 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'monitors', label: 'Monitors', icon: Activity },
-    { id: 'incidents', label: 'Incidents', icon: AlertCircle },
     { id: 'analytics', label: 'Analytics', icon: BarChart2 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];

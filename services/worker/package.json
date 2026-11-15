@@ -10,9 +10,7 @@
   "dependencies": {
     "@uptime/db": "workspace:*",
     "@uptime/shared-types": "workspace:*",
-    "got-scraping": "^4.2.1",
-    "kafkajs": "^2.2.4",
-    "undici": "^6.19.8"
+    "kafkajs": "^2.2.4"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
