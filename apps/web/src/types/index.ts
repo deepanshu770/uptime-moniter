@@ -1,7 +1,7 @@
 export interface Monitor {
   id: string;
   name: string;
-  type: string;
+  type?: string;
   target: string;
   interval_seconds: number;
   timeout_ms: number;
@@ -9,7 +9,8 @@ export interface Monitor {
   enabled: boolean;
   status: 'UP' | 'SUSPECT' | 'DOWN' | 'DEGRADED' | 'RECOVERING';
   lastCheckedAt?: string;
-  config: any;
+  lastResponseTimeMs?: number;
+  config?: any;
 }
 
 export interface CheckResult {

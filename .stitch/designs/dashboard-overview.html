@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"tertiary":"#ffb3ad","surface-bright":"#353942","on-primary-container":"#00422b","on-surface":"#dfe2ee","inverse-on-surface":"#2c3039","error":"#ffb4ab","surface":"#0f131c","background":"#0f131c","primary-container":"#10b981","surface-container-low":"#181c24","on-error":"#690005","surface-dim":"#0f131c","on-primary":"#003824","on-tertiary-container":"#79000e","on-tertiary-fixed":"#410004","on-primary-fixed-variant":"#005236","surface-container-highest":"#31353e","tertiary-container":"#ff7a73","on-primary-fixed":"#002113","on-secondary-fixed-variant":"#653e00","inverse-primary":"#006c49","on-secondary":"#472a00","secondary-fixed-dim":"#ffb95f","tertiary-fixed":"#ffdad7","inverse-surface":"#dfe2ee","outline":"#86948a","surface-tint":"#4edea3","surface-container":"#1c2028","surface-container-lowest":"#0a0e16","on-tertiary-fixed-variant":"#930013","secondary-container":"#ee9800","on-error-container":"#ffdad6","surface-container-high":"#262a33","on-tertiary":"#68000a","on-background":"#dfe2ee","error-container":"#93000a","secondary":"#ffb95f","surface-variant":"#31353e","primary":"#4edea3","outline-variant":"#3c4a42","primary-fixed":"#6ffbbe","on-secondary-container":"#5b3800","tertiary-fixed-dim":"#ffb3ad","on-secondary-fixed":"#2a1700","secondary-fixed":"#ffddb8","on-surface-variant":"#bbcabf","primary-fixed-dim":"#4edea3"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-sm":"0.5rem","gutter-desktop":"1.5rem","margin":"1rem","space-lg":"1.25rem","space-xs":"0.25rem","space-xl":"2rem","gutter":"1rem","space-md":"0.75rem","margin-desktop":"2rem"},"fontFamily":{"body-sm":["Inter"],"headline-sm":["Inter"],"label-lg":["JetBrains Mono"],"headline-lg":["Inter"],"headline-md":["Inter"],"label-sm":["JetBrains Mono"],"body-md":["Inter"],"body-lg":["Inter"],"label-md":["JetBrains Mono"],"headline-lg-mobile":["Inter"]},"fontSize":{"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"label-lg":["13px",{"lineHeight":"18px","letterSpacing":"-0.01em","fontWeight":"500"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-sm":["10px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"400"}],"body-md":["13px",{"lineHeight":"18px","fontWeight":"400"}],"body-lg":["15px",{"lineHeight":"22px","fontWeight":"400"}],"label-md":["11px",{"lineHeight":"16px","fontWeight":"500"}],"headline-lg-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low z-50 flex flex-col justify-between p-space-md shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="flex flex-col gap-space-lg"><div class="flex items-center justify-between px-space-sm py-space-xs"><div class="flex items-center gap-space-sm"><div class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[20px]">vital_signs</span></div><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">Pulse</span><span class="h-1.5 w-1.5 rounded-full bg-primary ring-2 ring-primary/20"></span></div></div><span class="font-label-sm text-label-sm text-primary bg-surface-container px-space-xs py-0.5 rounded">v2.4</span></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm"><a aria-current="page" class="flex items-center justify-between px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-primary-container font-headline-sm" data-path="overview" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">space_dashboard</span><span class="font-body-md text-body-md">Overview</span></div><span class="font-label-sm text-label-sm text-on-surface-variant px-1.5 py-0.5 rounded bg-surface-container">99.98%</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="monitors" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">radar</span><span class="font-body-md text-body-md">Monitors & Probes</span></div><span class="font-label-sm text-label-sm text-on-primary-container px-1.5 py-0.5 rounded bg-primary-container">42</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="telemetry-analytics" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">insights</span><span class="font-body-md text-body-md">Telemetry Analytics</span></div></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="alerts" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">notifications_active</span><span class="font-body-md text-body-md">Alerts & Integrations</span></div><span class="font-label-sm text-label-sm text-on-tertiary-container px-1.5 py-0.5 rounded bg-tertiary-container">1</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="settings" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">settings</span><span class="font-body-md text-body-md">Settings</span></div></a></nav></div><div class="flex flex-col gap-space-md"><div class="p-space-sm rounded-lg bg-surface-container-lowest flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-on-surface-variant">GLOBAL MESH</span><div class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-primary ring-2 ring-primary/20"></span><span class="font-label-sm text-label-sm text-primary">LIVE</span></div></div><div class="flex items-baseline justify-between"><span class="font-label-md text-label-md text-on-surface font-semibold">28/28 Edge PoPs</span><span class="font-label-sm text-label-sm text-on-surface-variant">18ms avg</span></div></div><div class="p-space-xs rounded-lg bg-surface-container flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-body-md text-body-md text-on-surface font-semibold leading-none">Alex Thorne</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Staff SRE</span></div></div><button class="p-space-xs rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">more_vert</span></button></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl z-40 flex items-center justify-between px-space-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">dns</span><span class="text-on-surface font-semibold">Production Cluster 01</span><span class="material-symbols-outlined text-[14px]">expand_more</span></div><div class="hidden lg:flex items-center bg-surface-container-lowest px-space-md py-space-xs rounded-lg w-80 text-on-surface-variant"><span class="material-symbols-outlined text-[18px] mr-space-sm">search</span><span class="font-body-sm text-body-sm flex-1 truncate text-on-surface-variant">Quick search monitors, regions, IPs...</span><kbd class="font-label-sm text-label-sm bg-surface-container px-1.5 py-0.5 rounded text-on-surface-variant">Cmd+K</kbd></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-space-xs rounded-full"><span class="h-2 w-2 rounded-full bg-primary ring-2 ring-primary/20"></span><span class="font-label-sm text-label-sm text-on-surface">Auto-refresh 30s</span></div><button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" type="button"><span class="material-symbols-outlined text-[16px]">play_arrow</span><span>Run All Probes</span></button><button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary-container hover:bg-primary hover:text-on-primary font-body-sm text-body-sm font-semibold transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">add</span><span>New Monitor</span></button><div class="flex items-center gap-space-xs"><button class="p-space-xs rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors relative" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-tertiary-container ring-1 ring-surface"></span></button><button class="p-space-xs rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">dark_mode</span></button></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-16 bg-surface w-full px-space-xl min-h-screen"><div class="flex flex-col w-full pb-space-xl">
+<!-- Top Cockpit Metric Strips -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md py-space-md">
+<!-- KPI 1: Uptime & SLA Cushion -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute -right-8 -top-8 w-28 h-28 bg-primary/5 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Global Availability (30d)</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container text-primary flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> SLA Safe
+        </span>
+</div>
+<div class="my-space-sm flex items-baseline justify-between">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">99.98%</span>
+<span class="font-label-sm text-label-sm text-primary">+0.03% cushion</span>
+</div>
+<!-- 24h mini sparkline svg -->
+<svg class="w-20 h-6 text-primary overflow-visible" fill="none" viewbox="0 0 80 24">
+<path d="M0 16 L10 14 L20 15 L30 11 L40 13 L50 8 L60 9 L70 5 L80 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M0 16 L10 14 L20 15 L30 11 L40 13 L50 8 L60 9 L70 5 L80 4 L80 24 L0 24 Z" fill="currentColor" fill-opacity="0.1"></path>
+</svg>
+</div>
+<div class="flex flex-col gap-1">
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden flex">
+<div class="bg-primary h-full rounded-full transition-all duration-500" style="width: 99.98%"></div>
+</div>
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Target 99.95%</span>
+<span>1.8m MTTR</span>
+</div>
+</div>
+</div>
+<!-- KPI 2: Active Endpoint Pool -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col justify-between relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Monitored Services</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mesh Synced</span>
+</div>
+<div class="my-space-sm flex items-baseline gap-space-sm">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">12</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Active Probes</span>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded">
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(78,222,163,0.8)]"></span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">11 Nominal</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded">
+<span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(255,185,95,0.8)]"></span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">1 Degraded</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded">
+<span class="w-2 h-2 rounded-full bg-surface-bright"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">0 Down</span>
+</div>
+</div>
+</div>
+<!-- KPI 3: Global Latency Breakdown -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col justify-between relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Avg Latency (Global p95)</span>
+<span class="font-label-sm text-label-sm text-primary flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">trending_down</span> -6ms
+        </span>
+</div>
+<div class="my-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">183</span>
+<span class="font-label-md text-label-md text-on-surface-variant font-mono">ms</span>
+</div>
+<div class="grid grid-cols-4 gap-1 font-label-sm text-label-sm">
+<div class="bg-surface-container px-1.5 py-0.5 rounded text-center">
+<div class="text-on-surface-variant">DNS</div>
+<div class="text-on-surface font-semibold font-mono">10ms</div>
+</div>
+<div class="bg-surface-container px-1.5 py-0.5 rounded text-center">
+<div class="text-on-surface-variant">TCP</div>
+<div class="text-on-surface font-semibold font-mono">34ms</div>
+</div>
+<div class="bg-surface-container px-1.5 py-0.5 rounded text-center">
+<div class="text-on-surface-variant">TLS</div>
+<div class="text-on-surface font-semibold font-mono">42ms</div>
+</div>
+<div class="bg-surface-container px-1.5 py-0.5 rounded text-center">
+<div class="text-on-surface-variant">TTFB</div>
+<div class="text-primary font-semibold font-mono">89ms</div>
+</div>
+</div>
+</div>
+<!-- KPI 4: Active Incidents State -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-md flex flex-col justify-between relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Active Incident Mesh</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Heartbeat: 4s</span>
+</div>
+<div class="my-space-sm flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">verified_user</span>
+</div>
+<div>
+<span class="font-headline-md text-headline-md text-on-surface font-bold">0 Outages</span>
+<div class="font-label-sm text-label-sm text-primary">Zero blocking events</div>
+</div>
+</div>
+<div class="flex items-center justify-between bg-surface-container px-space-sm py-1 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Ingress Gateway Check</span>
+<span class="font-label-sm text-label-sm text-primary font-mono font-semibold">ALL PASSING</span>
+</div>
+</div>
+</div>
+<!-- Operational Filter & Tactical Controls Bar -->
+<div class="mt-space-md mb-space-sm bg-surface-container-low p-space-sm rounded-xl shadow-md flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
+<!-- Left: Search and Filters -->
+<div class="flex flex-wrap items-center gap-space-sm flex-1">
+<!-- Live Search -->
+<div class="relative min-w-[260px] flex-1 max-w-md">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2">filter_alt</span>
+<input class="w-full bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant font-label-md text-label-md pl-9 pr-space-md py-2 rounded-lg outline-none focus:bg-surface-container-high transition-colors" id="serviceSearch" placeholder="Filter by endpoint, path, region or hash..." type="text"/>
+</div>
+<!-- Region Selector -->
+<div class="relative">
+<select class="bg-surface-container text-on-surface font-label-sm text-label-sm pl-space-sm pr-space-xl py-2 rounded-lg appearance-none cursor-pointer outline-none hover:bg-surface-container-high transition-colors" id="regionFilter">
+<option value="all">Region: All 28 Edge PoPs</option>
+<option value="iad">Americas (iad, sfo, ord)</option>
+<option value="fra">Europe (fra, lhr, cdg)</option>
+<option value="sin">Asia-Pacific (sin, nrt, syd)</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+</div>
+<!-- Status Selector -->
+<div class="relative">
+<select class="bg-surface-container text-on-surface font-label-sm text-label-sm pl-space-sm pr-space-xl py-2 rounded-lg appearance-none cursor-pointer outline-none hover:bg-surface-container-high transition-colors" id="statusFilter">
+<option value="all">Status: All (12)</option>
+<option value="up">Nominal UP (11)</option>
+<option value="degraded">Degraded Latency (1)</option>
+<option value="down">Critical Failures (0)</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+</div>
+<!-- Cadence Selector -->
+<div class="relative">
+<select class="bg-surface-container text-on-surface font-label-sm text-label-sm pl-space-sm pr-space-xl py-2 rounded-lg appearance-none cursor-pointer outline-none hover:bg-surface-container-high transition-colors" id="cadenceFilter">
+<option value="all">Cadence: All Intervals</option>
+<option value="10s">Fast Probe (10s)</option>
+<option value="30s">Standard (30s)</option>
+<option value="60s">Passive (60s)</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Right: View Modes & Bulk Actions -->
+<div class="flex items-center gap-space-sm justify-between xl:justify-end">
+<!-- Table vs Card Toggle -->
+<div class="bg-surface-container p-0.5 rounded-lg flex items-center">
+<button class="px-space-sm py-1 rounded-lg bg-surface-container-high text-primary flex items-center gap-1 font-label-sm text-label-sm" id="viewTableBtn" type="button">
+<span class="material-symbols-outlined text-[16px]">view_list</span>
+<span>Matrix</span>
+</button>
+<button class="px-space-sm py-1 rounded-lg text-on-surface-variant hover:text-on-surface flex items-center gap-1 font-label-sm text-label-sm transition-colors" id="viewGridBtn" type="button">
+<span class="material-symbols-outlined text-[16px]">grid_view</span>
+<span>Cards</span>
+</button>
+</div>
+<div class="h-4 w-px bg-surface-container-highest"></div>
+<!-- Action: Trigger Probe Run -->
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface px-space-md py-2 rounded-lg font-body-sm text-body-sm flex items-center gap-space-xs transition-all active:scale-95" id="triggerBatchProbes" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary">bolt</span>
+<span class="hidden sm:inline">Dispatch Probes</span>
+</button>
+<!-- Action: Export Telemetry CSV -->
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface px-space-md py-2 rounded-lg font-body-sm text-body-sm flex items-center gap-space-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">download</span>
+<span class="hidden sm:inline">Export CSV</span>
+</button>
+</div>
+</div>
+<!-- Monitors Production Matrix (Cockpit Table) -->
+<div class="bg-surface-container-low rounded-xl shadow-md overflow-hidden mt-space-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse" id="monitorsTable">
+<thead>
+<tr class="bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-space-md px-space-md w-28">Status</th>
+<th class="py-space-md px-space-md min-w-[260px]">Service & Host Target</th>
+<th class="py-space-md px-space-md">Interval</th>
+<th class="py-space-md px-space-md">Edge Mesh PoPs</th>
+<th class="py-space-md px-space-md text-right">Latency</th>
+<th class="py-space-md px-space-md">Telemetry 24h</th>
+<th class="py-space-md px-space-md text-right">Last Verified</th>
+<th class="py-space-md px-space-md text-right w-36">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container text-body-sm font-body-sm">
+<!-- Row 1: Production API Gateway -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(78,222,163,0.9)] animate-pulse"></span>
+<span>UP</span>
+</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors">Production API Gateway</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant">HTTP/2</span>
+</div>
+<div class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1 mt-0.5 truncate max-w-sm">
+<span class="material-symbols-outlined text-[13px] text-primary">lock</span>
+<span class="font-mono text-on-surface/90">https://api.cloudmesh.io/v1/healthz</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono">10s</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1">
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">iad-1</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">fra-2</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">sin-1</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-right font-label-md text-label-md font-mono">
+<span class="text-on-surface font-bold">142</span><span class="text-on-surface-variant text-[10px]">ms</span>
+</td>
+<td class="py-space-md px-space-md">
+<!-- Mini histogram representation -->
+<div class="flex items-end gap-0.5 h-5 w-24">
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-3 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary h-4.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-3 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary h-4 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-3 rounded-t-sm"></div>
+<div class="w-1 bg-primary h-3.5 rounded-t-sm"></div>
+</div>
+</td>
+<td class="py-space-md px-space-md text-right font-label-sm text-label-sm text-on-surface-variant">
+              4s ago
+            </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface-variant transition-colors" title="Run manual probe" type="button">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors" title="Open Telemetry Drawer" type="button">
+<span class="material-symbols-outlined text-[16px]">insert_chart</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="More options" type="button">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: OAuth2 Identity Token Issuer -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(78,222,163,0.9)] animate-pulse"></span>
+<span>UP</span>
+</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors">OAuth2 Identity Token Issuer</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant">OIDC</span>
+</div>
+<div class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1 mt-0.5 truncate max-w-sm">
+<span class="material-symbols-outlined text-[13px] text-primary">key</span>
+<span class="font-mono text-on-surface/90">https://auth.cloudmesh.io/oauth/token/.well-known</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono">30s</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1">
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">sfo-1</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">lhr-1</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">ord-1</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-right font-label-md text-label-md font-mono">
+<span class="text-on-surface font-bold">98</span><span class="text-on-surface-variant text-[10px]">ms</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-end gap-0.5 h-5 w-24">
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary h-3 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary h-2 rounded-t-sm"></div>
+</div>
+</td>
+<td class="py-space-md px-space-md text-right font-label-sm text-label-sm text-on-surface-variant">
+              12s ago
+            </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface-variant transition-colors" title="Run manual probe" type="button">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors" title="Open Telemetry Drawer" type="button">
+<span class="material-symbols-outlined text-[16px]">insert_chart</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="More options" type="button">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Payment Webhook Dispatcher (DEGRADED) -->
+<tr class="bg-secondary/5 hover:bg-secondary/10 transition-colors group">
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary/15 text-secondary font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_6px_rgba(255,185,95,0.9)] animate-ping"></span>
+<span>DEGRADED</span>
+</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-secondary transition-colors">Payment Webhook Dispatcher</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-secondary/20 text-secondary font-mono">LATENCY SPIKE</span>
+</div>
+<div class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1 mt-0.5 truncate max-w-sm">
+<span class="material-symbols-outlined text-[13px] text-secondary">sync_problem</span>
+<span class="font-mono text-on-surface/90">https://pay-ingress.cloudmesh.io/hooks/v1/verify</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono">10s</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1">
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">fra-1</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">cdg-1</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-right font-label-md text-label-md font-mono">
+<span class="text-secondary font-bold">432</span><span class="text-secondary/70 text-[10px]">ms</span>
+<div class="text-[10px] text-secondary">+220ms</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-end gap-0.5 h-5 w-24">
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-secondary/50 h-3 rounded-t-sm"></div>
+<div class="w-1 bg-secondary h-4 rounded-t-sm"></div>
+<div class="w-1 bg-secondary h-5 rounded-t-sm"></div>
+<div class="w-1 bg-secondary h-5 rounded-t-sm"></div>
+<div class="w-1 bg-secondary h-4.5 rounded-t-sm"></div>
+<div class="w-1 bg-secondary h-5 rounded-t-sm"></div>
+<div class="w-1 bg-secondary h-5 rounded-t-sm"></div>
+</div>
+</td>
+<td class="py-space-md px-space-md text-right font-label-sm text-label-sm text-secondary font-medium">
+              2s ago
+            </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded bg-secondary/20 hover:bg-secondary hover:text-on-secondary text-secondary transition-colors" title="Run manual probe" type="button">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-container-highest text-on-surface transition-colors" title="Open Telemetry Drawer" type="button">
+<span class="material-symbols-outlined text-[16px]">insert_chart</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="More options" type="button">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Checkout Session Service -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(78,222,163,0.9)] animate-pulse"></span>
+<span>UP</span>
+</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors">Checkout Session Service</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant">HTTP/2</span>
+</div>
+<div class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1 mt-0.5 truncate max-w-sm">
+<span class="material-symbols-outlined text-[13px] text-primary">shopping_bag</span>
+<span class="font-mono text-on-surface/90">https://checkout.cloudmesh.io/v2/sessions/status</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono">60s</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-primary font-mono font-medium">All 28 Edges</span>
+</td>
+<td class="py-space-md px-space-md text-right font-label-md text-label-md font-mono">
+<span class="text-on-surface font-bold">105</span><span class="text-on-surface-variant text-[10px]">ms</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-end gap-0.5 h-5 w-24">
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-3 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary h-3 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary h-2.5 rounded-t-sm"></div>
+</div>
+</td>
+<td class="py-space-md px-space-md text-right font-label-sm text-label-sm text-on-surface-variant">
+              19s ago
+            </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface-variant transition-colors" title="Run manual probe" type="button">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors" title="Open Telemetry Drawer" type="button">
+<span class="material-symbols-outlined text-[16px]">insert_chart</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="More options" type="button">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5: Elastic Cluster Telemetry Feed -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(78,222,163,0.9)] animate-pulse"></span>
+<span>UP</span>
+</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors">Elastic Cluster Telemetry Feed</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant">INTERNAL</span>
+</div>
+<div class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1 mt-0.5 truncate max-w-sm">
+<span class="material-symbols-outlined text-[13px] text-primary">data_object</span>
+<span class="font-mono text-on-surface/90">https://elastic-node01-internal.cloudmesh.io/_cluster/health</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono">30s</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1">
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface">us-east-1</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-right font-label-md text-label-md font-mono">
+<span class="text-on-surface font-bold">64</span><span class="text-on-surface-variant text-[10px]">ms</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-end gap-0.5 h-5 w-24">
+<div class="w-1 bg-primary/40 h-1.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1.5 rounded-t-sm"></div>
+</div>
+</td>
+<td class="py-space-md px-space-md text-right font-label-sm text-label-sm text-on-surface-variant">
+              28s ago
+            </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface-variant transition-colors" title="Run manual probe" type="button">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors" title="Open Telemetry Drawer" type="button">
+<span class="material-symbols-outlined text-[16px]">insert_chart</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="More options" type="button">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 6: Redis Cache Sentinel Ingress -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(78,222,163,0.9)] animate-pulse"></span>
+<span>UP</span>
+</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors">Redis Cache Sentinel Ingress</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant">TCP PING</span>
+</div>
+<div class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1 mt-0.5 truncate max-w-sm">
+<span class="material-symbols-outlined text-[13px] text-primary">memory</span>
+<span class="font-mono text-on-surface/90">https://cache-sentinel.cloudmesh.io/ping</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono">10s</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-primary font-mono font-medium">All 28 Edges</span>
+</td>
+<td class="py-space-md px-space-md text-right font-label-md text-label-md font-mono">
+<span class="text-on-surface font-bold">38</span><span class="text-on-surface-variant text-[10px]">ms</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-end gap-0.5 h-5 w-24">
+<div class="w-1 bg-primary/40 h-1.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1.5 rounded-t-sm"></div>
+<div class="w-1 bg-primary h-2 rounded-t-sm"></div>
+<div class="w-1 bg-primary/40 h-1.5 rounded-t-sm"></div>
+</div>
+</td>
+<td class="py-space-md px-space-md text-right font-label-sm text-label-sm text-on-surface-variant">
+              1s ago
+            </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface-variant transition-colors" title="Run manual probe" type="button">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+</button>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors" title="Open Telemetry Drawer" type="button">
+<span class="material-symbols-outlined text-[16px]">insert_chart</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" title="More options" type="button">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Telemetry Density Summary -->
+<div class="bg-surface-container-lowest px-space-md py-space-sm flex flex-col sm:flex-row items-center justify-between text-on-surface-variant font-label-sm text-label-sm gap-2">
+<div class="flex items-center gap-space-sm">
+<span>Displaying 6 of 12 active monitors</span>
+<span class="text-surface-bright">•</span>
+<span>Mesh latency variance: σ 14.2ms</span>
+</div>
+<div class="flex items-center gap-space-xs font-mono">
+<span class="text-on-surface font-semibold">1,248,390</span> synthetic requests evaluated in the last 24h
+      </div>
+</div>
+</div>
+<!-- Bottom Edge PoP Health Strip -->
+<div class="mt-space-md bg-surface-container-low rounded-xl p-space-sm px-space-md shadow-md flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(78,222,163,0.8)]"></span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Edge Mesh PoPs:</span>
+<span class="font-label-md text-label-md text-primary font-mono">28 / 28 Operational</span>
+</div>
+<div class="hidden md:flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-primary">alt_route</span>
+<span>Anycast BGP v4/v6 Active</span>
+</div>
+<div class="hidden lg:flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-primary">speed</span>
+<span>Packet Loss: 0.00%</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant mr-1">Global PoP Spectrum:</span>
+<div class="flex items-center gap-1">
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="iad-1: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="iad-2: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="sfo-1: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="ord-1: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="dfw-1: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="lhr-1: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="lhr-2: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-secondary" title="fra-1: Minor Spike"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="fra-2: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="cdg-1: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="ams-1: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="sin-1: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="nrt-1: OK"></span>
+<span class="w-2 h-4 rounded-sm bg-primary/80" title="syd-1: OK"></span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant ml-2 font-mono">100% Core Density</span>
+</div>
+</div>
+<!-- Interactive Script for Search and Visual Mode Toggles -->
+<script>
+    (function initPulseCockpit() {
+      const searchInput = document.getElementById('serviceSearch');
+      const tableRows = document.querySelectorAll('#monitorsTable tbody tr');
+      const triggerProbesBtn = document.getElementById('triggerBatchProbes');
+
+      // Live search filter on table rows
+      if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+          const query = e.target.value.toLowerCase().trim();
+          tableRows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            if (!query || text.includes(query)) {
+              row.style.display = '';
+            } else {
+              row.style.display = 'none';
+            }
+          });
+        });
+      }
+
+      // Manual probe trigger feedback
+      if (triggerProbesBtn) {
+        triggerProbesBtn.addEventListener('click', function() {
+          const originalHTML = triggerProbesBtn.innerHTML;
+          triggerProbesBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[16px] animate-spin text-primary">autorenew</span>
+            <span class="font-label-sm text-label-sm">Dispatched...</span>
+          `;
+          triggerProbesBtn.classList.add('bg-primary-container', 'text-on-primary-container');
+          setTimeout(() => {
+            triggerProbesBtn.innerHTML = `
+              <span class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
+              <span class="font-label-sm text-label-sm">Mesh Updated</span>
+            `;
+            setTimeout(() => {
+              triggerProbesBtn.innerHTML = originalHTML;
+              triggerProbesBtn.classList.remove('bg-primary-container', 'text-on-primary-container');
+            }, 1800);
+          }, 1200);
+        });
+      }
+    })();
+  </script>
+</div></main></div></body></html>

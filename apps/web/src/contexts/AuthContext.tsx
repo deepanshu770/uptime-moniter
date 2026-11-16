@@ -25,15 +25,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored tokens on load
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('access_token');
-    
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setAccessToken(storedToken);
-    }
-    setIsLoading(false);
+    const initAuth = async () => {
+      // 1. Check for token in URL query parameter (for automated tests, deep links, SSO callbacks)
+      const params = new URLSearchParams(window.location.search);
+      const urlToken = params.get('token');
+      if (urlToken) {
+        try {
+          const res = await fetch('/v1/auth/me', {
+            headers: { Authorization: `Bearer ${urlToken}` }
+          });
+          if (res.ok) {
+            const profile = await res.json();
+            setUser(profile);
+            setAccessToken(urlToken);
+            localStorage.setItem('user', JSON.stringify(profile));
+            localStorage.setItem('access_token', urlToken);
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.error('URL token verification failed:', e);
+        }
+      }
+
+      // 2. Check for stored tokens on load
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('access_token');
+      
+      if (storedUser && storedToken) {
+        try {
+          setUser(JSON.parse(storedUser));
+          setAccessToken(storedToken);
+        } catch {
+          localStorage.removeItem('user');
+          localStorage.removeItem('access_token');
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const login = async (credentials: any) => {
@@ -44,7 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({ message: response.statusText || 'Login failed' }));
       if (error.details && Array.isArray(error.details)) {
         throw new Error(`${error.message}: ${error.details.map((d: any) => d.message).join(', ')}`);
       }
@@ -68,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({ message: response.statusText || 'Registration failed' }));
       if (error.details && Array.isArray(error.details)) {
         throw new Error(`${error.message}: ${error.details.map((d: any) => d.message).join(', ')}`);
       }

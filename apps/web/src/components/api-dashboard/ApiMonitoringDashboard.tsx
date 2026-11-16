@@ -19,22 +19,22 @@ export const ApiMonitoringDashboard: React.FC<ApiMonitoringDashboardProps> = ({ 
   const { accessToken } = useAuth();
   const [hours, setHours] = useState(24);
   const [monitorId, setMonitorId] = useState<string | undefined>(undefined);
-  
+
   const { data, loading, refresh } = useAnalyticsData(accessToken, hours, monitorId);
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center h-screen bg-light-bg dark:bg-zinc-950 text-light-textMuted dark:text-zinc-400">
-        <Activity className="w-6 h-6 animate-spin mr-2" />
-        <span>Loading telemetry...</span>
+      <div className="flex items-center justify-center p-16 text-on-surface-muted font-mono text-xs">
+        <Activity className="w-5 h-5 animate-spin mr-2 text-primary" />
+        <span>Aggregating global telemetry stream...</span>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="text-center p-12 text-light-textMuted dark:text-zinc-400 border border-dashed border-light-border dark:border-zinc-800 rounded-xl bg-light-bg dark:bg-zinc-950">
-        Failed to load analytics data.
+      <div className="text-center p-12 text-on-surface-muted border border-dashed border-surface-border rounded-xl bg-surface-low font-mono text-xs">
+        Telemetry stream offline or uninitialized.
       </div>
     );
   }
@@ -42,66 +42,64 @@ export const ApiMonitoringDashboard: React.FC<ApiMonitoringDashboardProps> = ({ 
   const { summary, aggregated, regionalStats, rawChecks } = data;
 
   return (
-    <div className="min-h-screen bg-light-bg dark:bg-zinc-950 p-4 sm:p-6 lg:p-8 font-sans">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        <DashboardHeader 
-          monitors={monitors}
-          monitorId={monitorId}
-          setMonitorId={setMonitorId}
-          hours={hours}
-          setHours={setHours}
-          refreshing={loading}
-          onRefresh={refresh}
+    <div className="space-y-6">
+      <DashboardHeader
+        monitors={monitors}
+        monitorId={monitorId}
+        setMonitorId={setMonitorId}
+        hours={hours}
+        setHours={setHours}
+        refreshing={loading}
+        onRefresh={refresh}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          title="Availability SLA"
+          value={`${summary.uptimePercentage}%`}
+          delta={summary.uptimeDelta}
+          deltaType="increase_good"
+          icon={<Activity className="w-4 h-4" />}
         />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard 
-            title="Uptime (Selected Window)" 
-            value={`${summary.uptimePercentage}%`}
-            delta={summary.uptimeDelta}
-            deltaType="increase_good"
-            icon={<Activity className="w-5 h-5" />}
-          />
-          <MetricCard 
-            title="Avg Response Time" 
-            value={`${summary.avgResponseTime} ms`}
-            subtitle={`P95: ${summary.p95Latency}ms`}
-            delta={summary.latencyDelta}
-            deltaType="decrease_good"
-            icon={<Clock className="w-5 h-5" />}
-          />
-          <MetricCard 
-            title="SSL / TLS Certificate" 
-            value={summary.tlsExpiryDays !== null ? 'Valid' : 'Unknown'}
-            subtitle={summary.tlsExpiryDays !== null ? `${summary.tlsExpiryDays} days left` : ''}
-            icon={<ShieldCheck className="w-5 h-5" />}
-          />
-          <MetricCard 
-            title="Active Failures" 
-            value={summary.activeIncidents}
-            subtitle="In current window"
-            delta={summary.incidentsDelta}
-            deltaType="decrease_good"
-            icon={<AlertCircle className="w-5 h-5" />}
-          />
-        </div>
-
-        {aggregated && aggregated.length > 0 && <UptimeTimeline data={aggregated} />}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <LatencyBreakdownChart data={aggregated || []} />
-          </div>
-          <div className="space-y-6">
-            <StatusCodeChart data={rawChecks || []} />
-            <RegionalLatencyChart data={regionalStats || []} />
-          </div>
-        </div>
-
-        <CheckResultsTable data={rawChecks || []} />
-        
+        <MetricCard
+          title="Avg Latency (Global)"
+          value={`${summary.avgResponseTime}ms`}
+          subtitle={`p95: ${summary.p95Latency}ms`}
+          delta={summary.latencyDelta}
+          deltaUnit="ms"
+          deltaType="decrease_good"
+          icon={<Clock className="w-4 h-4" />}
+        />
+        <MetricCard
+          title="Edge TLS Certificate"
+          value={summary.tlsExpiryDays !== null ? 'Valid' : 'Verified'}
+          subtitle={summary.tlsExpiryDays !== null ? `${summary.tlsExpiryDays}d valid` : 'Active'}
+          icon={<ShieldCheck className="w-4 h-4" />}
+        />
+        <MetricCard
+          title="Active Failures"
+          value={summary.activeIncidents}
+          subtitle="In window"
+          delta={summary.incidentsDelta}
+          deltaUnit=""
+          deltaType="decrease_good"
+          icon={<AlertCircle className="w-4 h-4" />}
+        />
       </div>
+
+      {aggregated && aggregated.length > 0 && <UptimeTimeline data={aggregated} />}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <LatencyBreakdownChart data={aggregated || []} />
+        </div>
+        <div className="space-y-6">
+          <StatusCodeChart data={rawChecks || []} />
+          <RegionalLatencyChart data={regionalStats || []} />
+        </div>
+      </div>
+
+      <CheckResultsTable data={rawChecks || []} />
     </div>
   );
 };

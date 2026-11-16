@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw, ChevronDown } from 'lucide-react';
+import { RefreshCw, Cloud, Calendar } from 'lucide-react';
 import { Monitor } from '../../types';
 
 interface DashboardHeaderProps {
@@ -12,68 +12,82 @@ interface DashboardHeaderProps {
   onRefresh: () => void;
 }
 
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ 
-  monitors, monitorId, setMonitorId, hours, setHours, refreshing, onRefresh 
+export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
+  monitors,
+  monitorId,
+  setMonitorId,
+  hours,
+  setHours,
+  refreshing,
+  onRefresh,
 }) => {
-  const selectedMonitor = monitorId ? monitors.find(m => m.id === monitorId) : null;
-  const displayName = selectedMonitor ? selectedMonitor.name : 'Global Infrastructure';
-  const displayUrl = selectedMonitor ? selectedMonitor.target : 'Aggregated View';
-
-  // Find worst status for global view, or current monitor status
-  let statusBadge = { color: 'bg-green-500', pulse: 'bg-green-400' };
-  if (selectedMonitor) {
-    if (selectedMonitor.status === 'DOWN') { statusBadge = { color: 'bg-red-500', pulse: 'bg-red-400' }; }
-    else if (selectedMonitor.status === 'DEGRADED') { statusBadge = { color: 'bg-amber-500', pulse: 'bg-amber-400' }; }
-  } else {
-    if (monitors.some(m => m.status === 'DOWN')) { statusBadge = { color: 'bg-red-500', pulse: 'bg-red-400' }; }
-    else if (monitors.some(m => m.status === 'DEGRADED')) { statusBadge = { color: 'bg-amber-500', pulse: 'bg-amber-400' }; }
-  }
+  const selectedMonitor = monitorId ? monitors.find((m) => m.id === monitorId) : null;
+  const displayName = selectedMonitor ? selectedMonitor.name : 'Global Infrastructure Telemetry';
+  const displayTarget = selectedMonitor ? selectedMonitor.target : 'Aggregated All Probes Mesh';
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-      <div>
-        <div className="flex items-center space-x-3">
-          <div className="flex h-3 w-3">
-            <span className={`animate-ping absolute inline-flex h-3 w-3 rounded-full ${statusBadge.pulse} opacity-75`}></span>
-            <span className={`relative inline-flex rounded-full h-3 w-3 ${statusBadge.color}`}></span>
-          </div>
-          <h1 className="text-2xl font-bold text-light-textMain dark:text-zinc-100">{displayName}</h1>
+    <div className="bg-surface-low p-4 rounded-xl border border-surface-border flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-md">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-lg bg-surface-container border border-surface-high flex items-center justify-center shrink-0">
+          <Cloud className="w-5 h-5 text-primary" />
         </div>
-        <p className="text-sm text-light-textMuted dark:text-zinc-400 mt-1">{displayUrl}</p>
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-bold text-on-surface">{displayName}</h2>
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-surface-container border border-surface-high text-primary">
+              Live Feed
+            </span>
+          </div>
+          <p className="text-xs font-mono text-on-surface-muted truncate max-w-md mt-0.5">
+            {displayTarget}
+          </p>
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
+      <div className="flex flex-wrap items-center gap-2.5">
+        {/* Endpoint Selector */}
         <select
           value={monitorId || 'global'}
           onChange={(e) => setMonitorId(e.target.value === 'global' ? undefined : e.target.value)}
-          className="block w-48 pl-3 pr-10 py-1.5 text-sm border border-light-border dark:border-zinc-800 rounded-lg leading-5 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 focus:outline-none focus:ring-1 focus:ring-light-accent focus:border-light-accent transition-colors"
+          className="bg-surface-container text-on-surface font-mono text-xs px-3 py-1.5 rounded-lg border border-surface-high outline-none cursor-pointer hover:bg-surface-high transition-colors"
         >
-          <option value="global">All Monitors (Global)</option>
-          {monitors.map(m => (
-            <option key={m.id} value={m.id}>{m.name}</option>
+          <option value="global">All Endpoints ({monitors.length} Monitored)</option>
+          {monitors.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name}
+            </option>
           ))}
         </select>
 
-        <div className="flex items-center space-x-1 bg-white dark:bg-zinc-900 border border-light-border dark:border-zinc-800 rounded-lg p-1">
-          {[24, 168, 720].map((h) => (
+        {/* Time Window Buttons */}
+        <div className="flex bg-surface-container p-0.5 rounded-lg border border-surface-high font-mono text-xs">
+          {[
+            { label: '24 Hours', value: 24 },
+            { label: '7 Days', value: 168 },
+            { label: '30 Days', value: 720 },
+          ].map((item) => (
             <button
-              key={h}
-              onClick={() => setHours(h)}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                hours === h ? 'bg-gray-100 dark:bg-zinc-800 text-light-textMain dark:text-zinc-100' : 'text-light-textMuted dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200'
+              key={item.value}
+              onClick={() => setHours(item.value)}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                hours === item.value
+                  ? 'bg-surface-high text-primary font-semibold'
+                  : 'text-on-surface-muted hover:text-on-surface'
               }`}
             >
-              {h === 24 ? '24H' : h === 168 ? '7D' : '30D'}
+              {item.label}
             </button>
           ))}
         </div>
-        
-        <button 
+
+        {/* Refresh Button */}
+        <button
           onClick={onRefresh}
-          className="flex items-center space-x-2 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-light-border dark:border-zinc-800 rounded-lg text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:bg-zinc-800 transition-colors"
+          disabled={refreshing}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container hover:bg-surface-high text-on-surface-variant hover:text-on-surface font-mono text-xs rounded-lg border border-surface-high transition-colors"
         >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-primary' : ''}`} />
+          <span>Sync</span>
         </button>
       </div>
     </div>

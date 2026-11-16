@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Monitor, CheckResult } from '../types';
 import { StatusBadge } from './StatusBadge';
-import { X, Play, Activity } from 'lucide-react';
+import {
+  X,
+  Play,
+  Activity,
+  Copy,
+  ExternalLink,
+  Clock,
+  Globe,
+  Check,
+  ShieldCheck,
+  AlertCircle
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   XAxis,
   YAxis,
@@ -13,6 +25,7 @@ import {
   Bar,
   Legend
 } from 'recharts';
+import { colors } from '../theme/colors';
 
 interface MonitorDrawerProps {
   monitor: Monitor | null;
@@ -28,181 +41,271 @@ export const MonitorDrawer: React.FC<MonitorDrawerProps> = ({
   onTriggerCheck,
 }) => {
   const { accessToken } = useAuth();
+  const { theme } = useTheme();
   const [recentResults, setRecentResults] = useState<CheckResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const gridColor = theme === 'dark' ? '#262A33' : '#E2E8F0';
+  const axisColor = theme === 'dark' ? '#86948A' : '#64748B';
+  const tooltipBg = theme === 'dark' ? '#181C24' : '#FFFFFF';
+  const tooltipBorder = theme === 'dark' ? '#31353E' : '#CBD5E1';
+  const tooltipText = theme === 'dark' ? '#DFE2EE' : '#0F172A';
+  const legendColor = theme === 'dark' ? '#BBCABF' : '#475569';
 
   useEffect(() => {
     let active = true;
     if (monitor) {
       setLoading(true);
-      fetch(`/v1/monitors/${monitor.id}/results?limit=25`, {
+      fetch(`/v1/monitors/${monitor.id}/results?limit=20`, {
         headers: {
-          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
         }
       })
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (active) {
             setRecentResults(Array.isArray(data) ? data : []);
             setLoading(false);
           }
         })
-        .catch(err => {
-          console.error(err);
+        .catch((err) => {
+          console.error('Failed to fetch probe results:', err);
           if (active) setLoading(false);
         });
     }
-    return () => { active = false; };
-  }, [monitor, executingCheckId]); // Refetch when executingCheckId changes (probe finishes)
+    return () => {
+      active = false;
+    };
+  }, [monitor, executingCheckId]);
 
   if (!monitor) return null;
 
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(monitor.target);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const chartData = [...recentResults].reverse().map((r) => ({
+    time: new Date(r.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    DNS: r.timings?.dns_ms ?? 0,
+    TCP: r.timings?.tcp_ms ?? 0,
+    TLS: r.timings?.tls_ms ?? 0,
+    TTFB: r.timings?.ttfb_ms ?? 0,
+    total: r.responseTimeMs ?? 0,
+    status: r.status,
+  }));
+
+  const latestResult = recentResults[0];
+
   return (
-    <div className="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm flex justify-end" onClick={onClose}>
-      <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 h-full border-l border-light-border dark:border-zinc-800 p-6 overflow-y-auto space-y-6 flex flex-col justify-between shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div>
-          <div className="flex items-center justify-between pb-4 border-b border-light-border dark:border-zinc-800">
-            <div>
-              <div className="flex items-center space-x-3">
-                <h2 className="text-xl font-bold text-light-textMain dark:text-zinc-100">{monitor.name}</h2>
-                <StatusBadge status={monitor.status} />
+    <div
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex justify-end transition-opacity"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl bg-surface-low h-full border-l border-surface-border p-6 overflow-y-auto space-y-6 flex flex-col justify-between shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-6">
+          {/* Header & Sub-nav */}
+          <div className="flex items-start justify-between pb-4 border-b border-surface-border">
+            <div className="space-y-1.5 min-w-0">
+              <div className="flex items-center gap-2 text-on-surface-muted text-[11px] font-mono">
+                <span>MONITORS & PROBES</span>
+                <span>/</span>
+                <span className="text-primary uppercase">{monitor.type || 'HTTP'}</span>
               </div>
-              <p className="text-xs font-mono text-light-textMuted dark:text-zinc-400 mt-1">{monitor.target}</p>
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold text-on-surface tracking-tight truncate">
+                  {monitor.name}
+                </h2>
+                <StatusBadge status={monitor.status} size="sm" />
+              </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-700 dark:text-zinc-300 rounded-lg hover:bg-gray-100 dark:bg-zinc-800 transition-colors"
+              className="p-1.5 text-on-surface-muted hover:text-on-surface hover:bg-surface-high rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="mt-4 flex items-center justify-between bg-gray-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-light-border dark:border-zinc-800">
-            <div className="text-xs text-light-textMuted dark:text-zinc-400">
-              Checking every <span className="text-light-textMain dark:text-zinc-100 font-semibold">{monitor.interval_seconds}s</span> from{' '}
-              <span className="text-light-accent">{monitor.regions.join(', ')}</span>
+          {/* Endpoint URL & Instant Actions Bar */}
+          <div className="bg-surface-container rounded-xl p-3 border border-surface-high flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <code className="text-xs font-mono text-on-surface truncate select-all">
+                {monitor.target}
+              </code>
+              <button
+                onClick={handleCopyUrl}
+                className="text-on-surface-muted hover:text-primary transition-colors p-1"
+                title="Copy target URL"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+              {monitor.target.startsWith('http') && (
+                <a
+                  href={monitor.target}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-on-surface-muted hover:text-primary transition-colors p-1"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
             </div>
+
             <button
               onClick={() => onTriggerCheck(monitor.id)}
               disabled={executingCheckId === monitor.id}
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-light-accent hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-light text-black text-xs font-mono font-semibold rounded-lg shadow-glow-primary transition-all shrink-0 active:scale-95"
             >
               <Play className={`w-3.5 h-3.5 ${executingCheckId === monitor.id ? 'animate-spin' : ''}`} />
-              <span>{executingCheckId === monitor.id ? 'Probing...' : 'Run Probe Now'}</span>
+              <span>{executingCheckId === monitor.id ? 'Probing...' : 'Instant Probe'}</span>
             </button>
           </div>
 
-          <div className="mt-6 space-y-4">
-            <h3 className="text-sm font-bold text-light-textMain dark:text-zinc-100 flex items-center space-x-2">
-              <Activity className="w-4 h-4 text-light-accent" />
-              <span>Recent Probe Executions & Phase Timings</span>
-            </h3>
+          {/* Telemetry Summary Cards */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-surface-container p-3 rounded-lg border border-surface-high">
+              <div className="text-[10px] font-mono text-on-surface-muted uppercase">Last Latency</div>
+              <div className="text-lg font-bold font-mono text-on-surface mt-0.5">
+                {latestResult ? `${latestResult.responseTimeMs}ms` : '—'}
+              </div>
+            </div>
+            <div className="bg-surface-container p-3 rounded-lg border border-surface-high">
+              <div className="text-[10px] font-mono text-on-surface-muted uppercase">Interval</div>
+              <div className="text-lg font-bold font-mono text-on-surface mt-0.5">
+                {monitor.interval_seconds}s
+              </div>
+            </div>
+            <div className="bg-surface-container p-3 rounded-lg border border-surface-high">
+              <div className="text-[10px] font-mono text-on-surface-muted uppercase">Edge Mesh</div>
+              <div className="text-lg font-bold font-mono text-primary mt-0.5">
+                {monitor.regions.length} Regions
+              </div>
+            </div>
+          </div>
+
+          {/* Phase Timings Chart */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-on-surface flex items-center gap-2">
+                <Activity className="w-4 h-4 text-primary" />
+                <span>Phase Breakdown (DNS, TCP, TLS, TTFB)</span>
+              </h3>
+            </div>
 
             {loading && recentResults.length === 0 ? (
-              <div className="text-center py-8 text-xs text-light-textMuted dark:text-zinc-400">Loading results...</div>
-            ) : recentResults.length === 0 ? (
-              <div className="text-center py-8 text-xs text-light-textMuted dark:text-zinc-400">
-                No execution results recorded yet. Click "Run Probe Now".
+              <div className="h-48 flex items-center justify-center text-xs font-mono text-on-surface-muted bg-surface-container rounded-xl border border-surface-high">
+                Loading telemetry samples...
+              </div>
+            ) : chartData.length === 0 ? (
+              <div className="h-48 flex items-center justify-center text-xs font-mono text-on-surface-muted bg-surface-container rounded-xl border border-surface-high">
+                No probe executions recorded yet. Click "Instant Probe" above.
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-indigo-700">
-                    <span className="text-xs font-semibold uppercase tracking-wider block mb-0.5">Total Response Time</span>
-                    <span className="text-xl font-bold">{recentResults[0]?.responseTimeMs ?? 0}ms</span>
-                  </div>
-                </div>
-                <div className="h-64 w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border border-light-border dark:border-zinc-800 shadow-sm">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={[...recentResults].reverse().map(r => ({
-                      time: new Date(r.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-                      DNS: r.timings.dns_ms,
-                      TCP: r.timings.tcp_ms,
-                      TLS: r.timings.tls_ms,
-                      TTFB: r.timings.ttfb_ms,
-                      Download: r.timings.download_ms,
-                      total: r.responseTimeMs,
-                      hasError: r.status !== 0
-                    }))}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
-                      <XAxis dataKey="time" stroke="#6B7280" fontSize={10} tickMargin={10} />
-                      <YAxis stroke="#6B7280" fontSize={10} tickFormatter={(val) => `${val}ms`} width={50} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#E5E7EB', borderRadius: '0.5rem', fontSize: '12px', color: '#1F2937' }}
-                        itemStyle={{ fontSize: '12px' }}
-                        cursor={{ fill: '#F3F4F6' }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                      <Bar dataKey="DNS" stackId="a" fill="#60A5FA" />
-                      <Bar dataKey="TCP" stackId="a" fill="#34D399" />
-                      <Bar dataKey="TLS" stackId="a" fill="#A78BFA" />
-                      <Bar dataKey="TTFB" stackId="a" fill="#FBBF24" />
-                      <Bar dataKey="Download" stackId="a" fill="#F87171" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                
-                {typeof recentResults[0]?.tlsExpiryDays === 'number' && (
-                  <div className={`p-3 rounded-lg border text-xs font-mono flex items-center space-x-2 ${
-                    recentResults[0].tlsExpiryDays <= 7 ? 'bg-red-50 border-red-200 text-red-700' :
-                    recentResults[0].tlsExpiryDays <= 30 ? 'bg-yellow-50 border-yellow-200 text-yellow-700' :
-                    'bg-green-50 border-green-200 text-green-700'
-                  }`}>
-                    <span>🔒 TLS Certificate expires in {recentResults[0].tlsExpiryDays} days</span>
-                  </div>
-                )}
-
-                {recentResults[0]?.errorMessage && (
-                  <div className="text-xs text-red-700 font-mono bg-red-50 p-3 rounded-lg border border-red-200">
-                    ⚠️ Latest Error: {recentResults[0].errorMessage}
-                  </div>
-                )}
-                
-                <div className="mt-6 border border-light-border dark:border-zinc-800 rounded-xl overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-gray-50 dark:bg-zinc-800/50 border-b border-light-border dark:border-zinc-800">
-                      <tr>
-                        <th className="px-4 py-2 font-medium text-gray-500 dark:text-zinc-500">Time</th>
-                        <th className="px-4 py-2 font-medium text-gray-500 dark:text-zinc-500">Status</th>
-                        <th className="px-4 py-2 font-medium text-gray-500 dark:text-zinc-500">DNS</th>
-                        <th className="px-4 py-2 font-medium text-gray-500 dark:text-zinc-500">TCP</th>
-                        <th className="px-4 py-2 font-medium text-gray-500 dark:text-zinc-500">TLS</th>
-                        <th className="px-4 py-2 font-medium text-gray-500 dark:text-zinc-500">TTFB</th>
-                        <th className="px-4 py-2 font-medium text-gray-500 dark:text-zinc-500">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-light-border">
-                      {recentResults.slice(0, 5).map((r, i) => (
-                        <tr key={i} className="hover:bg-gray-50 dark:bg-zinc-800/50">
-                          <td className="px-4 py-2 text-gray-600 dark:text-zinc-400">{new Date(r.time).toLocaleTimeString()}</td>
-                          <td className="px-4 py-2">
-                            <span className={`px-2 py-0.5 rounded-full font-medium ${r.status === 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                              {r.status === 0 ? 'UP' : 'DOWN'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 font-mono text-gray-500 dark:text-zinc-500">{r.timings?.dns_ms ?? 0}ms</td>
-                          <td className="px-4 py-2 font-mono text-gray-500 dark:text-zinc-500">{r.timings?.tcp_ms ?? 0}ms</td>
-                          <td className="px-4 py-2 font-mono text-gray-500 dark:text-zinc-500">{r.timings?.tls_ms ?? 0}ms</td>
-                          <td className="px-4 py-2 font-mono text-gray-500 dark:text-zinc-500">{r.timings?.ttfb_ms ?? 0}ms</td>
-                          <td className="px-4 py-2 font-mono text-gray-900 dark:text-zinc-100 font-medium">{r.responseTimeMs ?? 0}ms</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-
+              <div className="h-56 w-full bg-surface-container p-3 rounded-xl border border-surface-high">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                    <XAxis dataKey="time" stroke={axisColor} fontSize={10} tickLine={false} />
+                    <YAxis stroke={axisColor} fontSize={10} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: tooltipBg,
+                        borderColor: tooltipBorder,
+                        borderRadius: '0.5rem',
+                        fontSize: '11px',
+                        fontFamily: 'JetBrains Mono',
+                        color: tooltipText
+                      }}
+                    />
+                    <Legend
+                      wrapperStyle={{
+                        fontSize: '11px',
+                        fontFamily: 'JetBrains Mono',
+                        paddingTop: '6px',
+                        color: legendColor
+                      }}
+                    />
+                    <Bar dataKey="DNS" stackId="a" fill={colors.timing.dns} />
+                    <Bar dataKey="TCP" stackId="a" fill={colors.timing.tcp} />
+                    <Bar dataKey="TLS" stackId="a" fill={colors.timing.tls} />
+                    <Bar dataKey="TTFB" stackId="a" fill={colors.timing.ttfb} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             )}
           </div>
+
+          {/* Historical Execution Log */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-on-surface flex items-center gap-2">
+              <Clock className="w-4 h-4 text-on-surface-variant" />
+              <span>Probe Execution Stream</span>
+            </h3>
+
+            <div className="bg-surface-container rounded-xl border border-surface-high overflow-hidden">
+              <div className="max-h-56 overflow-y-auto">
+                <table className="w-full text-left border-collapse text-xs font-mono">
+                  <thead>
+                    <tr className="bg-surface-lowest text-[10px] uppercase text-on-surface-muted border-b border-surface-high">
+                      <th className="py-2 px-3">Status</th>
+                      <th className="py-2 px-3">Code</th>
+                      <th className="py-2 px-3">Latency</th>
+                      <th className="py-2 px-3">Region</th>
+                      <th className="py-2 px-3 text-right">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-high/50 text-[11px]">
+                    {recentResults.map((r, index) => (
+                      <tr key={r.jobId || `${r.time}-${index}`} className="hover:bg-surface-high/30 transition-colors">
+                        <td className="py-2 px-3">
+                          <span
+                            className={`w-2 h-2 rounded-full inline-block ${
+                              r.status === 0 ? 'bg-primary' : 'bg-tertiary'
+                            }`}
+                          />
+                        </td>
+                        <td className="py-2 px-3 text-on-surface font-semibold">
+                          {r.statusCode || '—'}
+                        </td>
+                        <td className="py-2 px-3 text-on-surface">
+                          {r.responseTimeMs}ms
+                        </td>
+                        <td className="py-2 px-3 text-primary">
+                          {r.region}
+                        </td>
+                        <td className="py-2 px-3 text-right text-on-surface-muted">
+                          {new Date(r.time).toLocaleTimeString()}
+                        </td>
+                      </tr>
+                    ))}
+                    {recentResults.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="py-4 text-center text-on-surface-muted text-xs">
+                          No probe logs recorded yet.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="pt-4 border-t border-light-border dark:border-zinc-800 flex justify-end">
+        {/* Footer */}
+        <div className="pt-4 border-t border-surface-border flex items-center justify-between text-xs font-mono text-on-surface-muted">
+          <span>Target ID: {monitor.id}</span>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-xs font-semibold rounded-lg text-gray-700 dark:text-zinc-300 transition-colors"
+            className="px-3 py-1.5 bg-surface-container hover:bg-surface-high text-on-surface rounded-lg border border-surface-high transition-colors"
           >
-            Close Drawer
+            Close Panel
           </button>
         </div>
       </div>

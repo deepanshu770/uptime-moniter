@@ -1,6 +1,6 @@
 import React from 'react';
-import { RefreshCw, Plus, Search, Bell, HelpCircle, Menu } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { RefreshCw, Plus, Search, Bell, Menu, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface NavbarProps {
   onToggleMobileMenu?: () => void;
@@ -9,6 +9,8 @@ interface NavbarProps {
   showCreateSampleBtn: boolean;
   onCreateSample: () => void;
   onOpenCreateModal: () => void;
+  searchQuery?: string;
+  onSearchChange?: (val: string) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -17,75 +19,107 @@ export const Navbar: React.FC<NavbarProps> = ({
   setAutoRefresh,
   showCreateSampleBtn,
   onCreateSample,
-  onOpenCreateModal
+  onOpenCreateModal,
+  searchQuery = '',
+  onSearchChange,
 }) => {
-  const { user } = useAuth();
-
+  const { theme, toggleTheme } = useTheme();
   return (
-    <header className="border-b border-light-border dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-30">
-      <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div className="flex-1 flex items-center">
-          <button 
-            onClick={onToggleMobileMenu}
-            className="md:hidden mr-3 p-2 rounded-md text-gray-400 hover:text-gray-500 dark:text-zinc-500 hover:bg-gray-100 dark:bg-zinc-800 focus:outline-none focus:bg-gray-100 dark:bg-zinc-800 focus:text-gray-500 dark:text-zinc-500 transition duration-150 ease-in-out"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
-          <div className="max-w-md w-full relative hidden md:block">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search monitors, incidents..."
-              className="block w-full pl-10 pr-3 py-2 border border-light-border dark:border-zinc-800 rounded-lg leading-5 bg-gray-50 dark:bg-zinc-800/50 placeholder-gray-400 focus:outline-none focus:bg-white dark:bg-zinc-900 focus:ring-1 focus:ring-light-accent focus:border-light-accent sm:text-sm transition-colors"
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <span className="text-xs text-gray-400 border border-gray-200 dark:border-zinc-700 rounded px-1.5 py-0.5">⌘K</span>
-            </div>
+    <header className="sticky top-0 z-30 h-16 bg-surface-low/90 backdrop-blur-md border-b border-surface-border px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      {/* Search and Mobile Toggle */}
+      <div className="flex items-center gap-3 flex-1 max-w-md">
+        <button
+          onClick={onToggleMobileMenu}
+          className="md:hidden p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-high transition-colors"
+          aria-label="Open sidebar"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="relative w-full hidden sm:block">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="w-4 h-4 text-on-surface-muted" />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange?.(e.target.value)}
+            placeholder="Search endpoints, hosts, regions..."
+            className="w-full bg-surface-container text-on-surface placeholder:text-on-surface-muted text-xs font-mono pl-9 pr-12 py-2 rounded-lg border border-surface-border focus:border-primary/50 focus:outline-none transition-colors"
+          />
+          <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+            <kbd className="text-[10px] font-mono text-on-surface-muted bg-surface-high px-1.5 py-0.5 rounded border border-surface-highest">
+              ⌘K
+            </kbd>
           </div>
         </div>
+      </div>
 
-        <div className="flex items-center space-x-4">
+      {/* Action Controls & Indicators */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Live Polling Status */}
+        <button
+          onClick={() => setAutoRefresh(!autoRefresh)}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all border ${
+            autoRefresh
+              ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15'
+              : 'bg-surface-container text-on-surface-muted border-surface-border hover:text-on-surface'
+          }`}
+          title={autoRefresh ? 'Click to pause auto-polling' : 'Click to enable live 5s polling'}
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${autoRefresh ? 'animate-spin text-primary' : ''}`} />
+          <span className="hidden sm:inline">{autoRefresh ? 'Live (5s)' : 'Paused'}</span>
+        </button>
+
+        {/* Load Preset Demo Targets */}
+        {showCreateSampleBtn && (
           <button
-            onClick={() => setAutoRefresh(!autoRefresh)}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-              autoRefresh
-                ? 'bg-green-50 text-green-700 border-green-200'
-                : 'bg-white dark:bg-zinc-900 text-light-textMuted dark:text-zinc-400 border-light-border dark:border-zinc-800 hover:bg-gray-50 dark:bg-zinc-800/50'
-            }`}
+            onClick={onCreateSample}
+            className="px-3 py-1.5 bg-surface-container hover:bg-surface-high text-xs font-mono text-on-surface-variant hover:text-on-surface rounded-lg border border-surface-border transition-colors hidden md:block"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${autoRefresh ? 'animate-spin text-green-500' : ''}`} />
-            <span>{autoRefresh ? 'Live Polling (5s)' : 'Paused'}</span>
+            + Preset Targets
           </button>
+        )}
 
-          {showCreateSampleBtn && (
-            <button
-              onClick={onCreateSample}
-              className="px-3 py-1.5 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:bg-zinc-800/50 text-xs font-medium rounded-lg text-light-textMain dark:text-zinc-100 border border-light-border dark:border-zinc-800 transition-colors"
-            >
-              + Load Preset Targets
-            </button>
+        {/* Create Monitor Button */}
+        <button
+          onClick={onOpenCreateModal}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-light text-black font-semibold text-xs rounded-lg shadow-glow-primary transition-all active:scale-95"
+        >
+          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <span>New Monitor</span>
+        </button>
+
+        <div className="h-4 w-px bg-surface-highest mx-1 hidden sm:block" />
+
+        {/* Ingress Gateway / Cluster Status */}
+        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container border border-surface-border text-on-surface-variant text-[11px] font-mono">
+          <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+          <span>Mesh Ok</span>
+        </div>
+
+        {/* Theme Toggle (Light / Dark) */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-high transition-colors"
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Obsidian Dark'}
+          aria-label="Toggle Theme"
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-4 h-4 text-secondary hover:rotate-45 transition-transform" />
+          ) : (
+            <Moon className="w-4 h-4 text-primary hover:-rotate-12 transition-transform" />
           )}
+        </button>
 
-          <button
-            onClick={onOpenCreateModal}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-light-accent hover:bg-indigo-700 text-white shadow-sm transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Monitor</span>
-          </button>
-
-          <div className="flex items-center space-x-3 pl-4 border-l border-light-border dark:border-zinc-800">
-            <button className="text-gray-400 hover:text-gray-500 dark:text-zinc-500 relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white"></span>
-            </button>
-            <button className="text-gray-400 hover:text-gray-500 dark:text-zinc-500">
-              <HelpCircle className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+        {/* Notification Bell */}
+        <button
+          className="p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-high transition-colors relative"
+          aria-label="Notifications"
+        >
+          <Bell className="w-4 h-4" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-secondary ring-2 ring-surface-low" />
+        </button>
       </div>
     </header>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CheckResult } from './types';
-import { ShieldAlert, Globe, Server, Clock } from 'lucide-react';
+import { Globe, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { CheckDetailModal } from './CheckDetailModal';
 
 interface CheckResultsTableProps {
@@ -11,79 +11,117 @@ export const CheckResultsTable: React.FC<CheckResultsTableProps> = ({ data }) =>
   const [errorsOnly, setErrorsOnly] = useState(false);
   const [selectedCheck, setSelectedCheck] = useState<CheckResult | null>(null);
 
-  const filteredData = errorsOnly ? data.filter(d => d.status !== 0) : data;
+  const filteredData = errorsOnly ? data.filter((d) => d.status !== 0) : data;
 
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-light-border dark:border-zinc-800 rounded-xl overflow-hidden">
-      <div className="p-5 border-b border-light-border dark:border-zinc-800 flex justify-between items-center">
-        <h3 className="text-sm font-medium text-light-textMain dark:text-zinc-100">Recent Checks</h3>
-        <label className="flex items-center space-x-2 text-sm text-light-textMuted dark:text-zinc-400 cursor-pointer">
-          <input 
-            type="checkbox" 
-            className="form-checkbox rounded bg-light-bg dark:bg-zinc-950 border-gray-300 dark:border-zinc-700 text-light-accent focus:ring-0" 
+    <div className="bg-surface-low border border-surface-border rounded-xl overflow-hidden shadow-md">
+      <div className="p-4 border-b border-surface-border flex justify-between items-center">
+        <div>
+          <h3 className="text-xs font-mono uppercase tracking-wider text-on-surface font-semibold">
+            Raw Probing Trace Log
+          </h3>
+          <p className="text-[11px] font-mono text-on-surface-muted mt-0.5">
+            Click any entry to inspect network socket phases
+          </p>
+        </div>
+
+        <label className="flex items-center gap-2 text-xs font-mono text-on-surface-muted hover:text-on-surface cursor-pointer">
+          <input
+            type="checkbox"
+            className="rounded bg-surface-container border-surface-high text-primary focus:ring-0"
             checked={errorsOnly}
             onChange={(e) => setErrorsOnly(e.target.checked)}
           />
-          <span>Show Errors Only</span>
+          <span>Errors Only</span>
         </label>
       </div>
-      
+
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-light-textMuted dark:text-zinc-400">
-          <thead className="bg-light-bg dark:bg-zinc-950/50 text-xs uppercase text-gray-400 dark:text-zinc-500 border-b border-light-border dark:border-zinc-800">
+        <table className="w-full text-left font-mono text-xs">
+          <thead className="bg-surface-lowest text-[10px] uppercase text-on-surface-muted border-b border-surface-border">
             <tr>
-              <th className="px-5 py-3 font-medium">Status</th>
-              <th className="px-5 py-3 font-medium">Time</th>
-              <th className="px-5 py-3 font-medium">Region</th>
-              <th className="px-5 py-3 font-medium">Code</th>
-              <th className="px-5 py-3 font-medium">Latency</th>
-              <th className="px-5 py-3 font-medium">TTFB</th>
-              <th className="px-5 py-3 font-medium">Error Details</th>
+              <th className="px-4 py-2.5">Status</th>
+              <th className="px-4 py-2.5">Timestamp</th>
+              <th className="px-4 py-2.5">Region</th>
+              <th className="px-4 py-2.5">HTTP Code</th>
+              <th className="px-4 py-2.5">Total Latency</th>
+              <th className="px-4 py-2.5">TTFB</th>
+              <th className="px-4 py-2.5">Diagnostics</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-zinc-800/50">
+          <tbody className="divide-y divide-surface-container/60 text-[11px]">
             {filteredData.slice(0, 15).map((check) => (
-              <tr 
-                key={check.id || check.idempotency_key || check.time} 
+              <tr
+                key={check.id || check.idempotency_key || check.time}
                 onClick={() => setSelectedCheck(check)}
-                className="hover:bg-gray-100 dark:bg-gray-100 dark:bg-zinc-800/50 cursor-pointer transition-colors"
+                className="hover:bg-surface-high/30 cursor-pointer transition-colors"
               >
-                <td className="px-5 py-3">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${check.status === 0 ? 'bg-green-500/10 text-green-400' : check.status === 1 ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'}`}>
-                    {check.status === 0 ? 'UP' : check.status === 1 ? 'DEGRADED' : 'DOWN'}
+                <td className="px-4 py-2.5 whitespace-nowrap">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold ${
+                      check.status === 0
+                        ? 'bg-primary/10 text-primary border border-primary/20'
+                        : check.status === 1
+                        ? 'bg-secondary/10 text-secondary border border-secondary/20'
+                        : 'bg-tertiary/10 text-tertiary border border-tertiary/20'
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        check.status === 0
+                          ? 'bg-primary'
+                          : check.status === 1
+                          ? 'bg-secondary'
+                          : 'bg-tertiary'
+                      }`}
+                    />
+                    <span>{check.status === 0 ? 'UP' : check.status === 1 ? 'DEGRADED' : 'DOWN'}</span>
                   </span>
                 </td>
-                <td className="px-5 py-3 text-gray-700 dark:text-zinc-300">
-                  <span title={new Date(check.time).toLocaleString()}>{new Date(check.time).toLocaleTimeString()}</span>
+
+                <td className="px-4 py-2.5 text-on-surface-variant whitespace-nowrap">
+                  {new Date(check.time).toLocaleTimeString()}
                 </td>
-                <td className="px-5 py-3 text-gray-700 dark:text-zinc-300 flex items-center space-x-1">
-                  <Globe className="w-3 h-3 text-gray-400 dark:text-zinc-500" />
-                  <span>{check.region}</span>
+
+                <td className="px-4 py-2.5 text-on-surface whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <Globe className="w-3 h-3 text-on-surface-muted" />
+                    <span>{check.region}</span>
+                  </div>
                 </td>
-                <td className="px-5 py-3 font-mono text-gray-700 dark:text-zinc-300">
-                  {check.status_code || '-'}
+
+                <td className="px-4 py-2.5 font-semibold text-on-surface whitespace-nowrap">
+                  {check.status_code || '—'}
                 </td>
-                <td className="px-5 py-3 font-mono text-gray-700 dark:text-zinc-300">
+
+                <td className="px-4 py-2.5 text-on-surface whitespace-nowrap">
                   {check.response_time_ms}ms
                 </td>
-                <td className="px-5 py-3 font-mono text-gray-400 dark:text-zinc-500">
+
+                <td className="px-4 py-2.5 text-on-surface-muted whitespace-nowrap">
                   {check.ttfb_ms}ms
                 </td>
-                <td className="px-5 py-3">
+
+                <td className="px-4 py-2.5 max-w-xs truncate">
                   {check.error_code ? (
-                    <span className="text-red-400 text-xs truncate max-w-[200px] block" title={check.error_message}>
-                      {check.error_code}
+                    <span className="text-tertiary font-semibold flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{check.error_code}</span>
                     </span>
                   ) : (
-                    <span className="text-zinc-600">-</span>
+                    <span className="text-on-surface-muted flex items-center gap-1 text-[10px]">
+                      <ShieldCheck className="w-3 h-3 text-primary" />
+                      <span>Nominal</span>
+                    </span>
                   )}
                 </td>
               </tr>
             ))}
+
             {filteredData.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-5 py-8 text-center text-gray-400 dark:text-zinc-500">
-                  No checks found matching the criteria.
+                <td colSpan={7} className="px-4 py-8 text-center text-on-surface-muted text-xs">
+                  No checks recorded matching filter criteria.
                 </td>
               </tr>
             )}

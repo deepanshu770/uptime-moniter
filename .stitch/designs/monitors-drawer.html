@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"tertiary":"#ffb3ad","surface-bright":"#353942","on-primary-container":"#00422b","on-surface":"#dfe2ee","inverse-on-surface":"#2c3039","error":"#ffb4ab","surface":"#0f131c","background":"#0f131c","primary-container":"#10b981","surface-container-low":"#181c24","on-error":"#690005","surface-dim":"#0f131c","on-primary":"#003824","on-tertiary-container":"#79000e","on-tertiary-fixed":"#410004","on-primary-fixed-variant":"#005236","surface-container-highest":"#31353e","tertiary-container":"#ff7a73","on-primary-fixed":"#002113","on-secondary-fixed-variant":"#653e00","inverse-primary":"#006c49","on-secondary":"#472a00","secondary-fixed-dim":"#ffb95f","tertiary-fixed":"#ffdad7","inverse-surface":"#dfe2ee","outline":"#86948a","surface-tint":"#4edea3","surface-container":"#1c2028","surface-container-lowest":"#0a0e16","on-tertiary-fixed-variant":"#930013","secondary-container":"#ee9800","on-error-container":"#ffdad6","surface-container-high":"#262a33","on-tertiary":"#68000a","on-background":"#dfe2ee","error-container":"#93000a","secondary":"#ffb95f","surface-variant":"#31353e","primary":"#4edea3","outline-variant":"#3c4a42","primary-fixed":"#6ffbbe","on-secondary-container":"#5b3800","tertiary-fixed-dim":"#ffb3ad","on-secondary-fixed":"#2a1700","secondary-fixed":"#ffddb8","on-surface-variant":"#bbcabf","primary-fixed-dim":"#4edea3"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-sm":"0.5rem","gutter-desktop":"1.5rem","margin":"1rem","space-lg":"1.25rem","space-xs":"0.25rem","space-xl":"2rem","gutter":"1rem","space-md":"0.75rem","margin-desktop":"2rem"},"fontFamily":{"body-sm":["Inter"],"headline-sm":["Inter"],"label-lg":["JetBrains Mono"],"headline-lg":["Inter"],"headline-md":["Inter"],"label-sm":["JetBrains Mono"],"body-md":["Inter"],"body-lg":["Inter"],"label-md":["JetBrains Mono"],"headline-lg-mobile":["Inter"]},"fontSize":{"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"label-lg":["13px",{"lineHeight":"18px","letterSpacing":"-0.01em","fontWeight":"500"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-sm":["10px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"400"}],"body-md":["13px",{"lineHeight":"18px","fontWeight":"400"}],"body-lg":["15px",{"lineHeight":"22px","fontWeight":"400"}],"label-md":["11px",{"lineHeight":"16px","fontWeight":"500"}],"headline-lg-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low z-50 flex flex-col justify-between p-space-md shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="flex flex-col gap-space-lg"><div class="flex items-center justify-between px-space-sm py-space-xs"><div class="flex items-center gap-space-sm"><div class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[20px]">vital_signs</span></div><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">Pulse</span><span class="h-1.5 w-1.5 rounded-full bg-primary ring-2 ring-primary/20"></span></div></div><span class="font-label-sm text-label-sm text-primary bg-surface-container px-space-xs py-0.5 rounded">v2.4</span></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm"><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="overview" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">space_dashboard</span><span class="font-body-md text-body-md">Overview</span></div><span class="font-label-sm text-label-sm text-on-surface-variant px-1.5 py-0.5 rounded bg-surface-container">99.98%</span></a><a aria-current="page" class="flex items-center justify-between px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-primary-container font-headline-sm" data-path="monitors" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">radar</span><span class="font-body-md text-body-md">Monitors & Probes</span></div><span class="font-label-sm text-label-sm text-on-primary-container px-1.5 py-0.5 rounded bg-primary-container">42</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="telemetry-analytics" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">insights</span><span class="font-body-md text-body-md">Telemetry Analytics</span></div></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="alerts" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">notifications_active</span><span class="font-body-md text-body-md">Alerts & Integrations</span></div><span class="font-label-sm text-label-sm text-on-tertiary-container px-1.5 py-0.5 rounded bg-tertiary-container">1</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="settings" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">settings</span><span class="font-body-md text-body-md">Settings</span></div></a></nav></div><div class="flex flex-col gap-space-md"><div class="p-space-sm rounded-lg bg-surface-container-lowest flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-on-surface-variant">GLOBAL MESH</span><div class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-primary ring-2 ring-primary/20"></span><span class="font-label-sm text-label-sm text-primary">LIVE</span></div></div><div class="flex items-baseline justify-between"><span class="font-label-md text-label-md text-on-surface font-semibold">28/28 Edge PoPs</span><span class="font-label-sm text-label-sm text-on-surface-variant">18ms avg</span></div></div><div class="p-space-xs rounded-lg bg-surface-container flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-body-md text-body-md text-on-surface font-semibold leading-none">Alex Thorne</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Staff SRE</span></div></div><button class="p-space-xs rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">more_vert</span></button></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl z-40 flex items-center justify-between px-space-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">dns</span><span class="text-on-surface font-semibold">Production Cluster 01</span><span class="material-symbols-outlined text-[14px]">expand_more</span></div><div class="hidden lg:flex items-center bg-surface-container-lowest px-space-md py-space-xs rounded-lg w-80 text-on-surface-variant"><span class="material-symbols-outlined text-[18px] mr-space-sm">search</span><span class="font-body-sm text-body-sm flex-1 truncate text-on-surface-variant">Quick search monitors, regions, IPs...</span><kbd class="font-label-sm text-label-sm bg-surface-container px-1.5 py-0.5 rounded text-on-surface-variant">Cmd+K</kbd></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-space-xs rounded-full"><span class="h-2 w-2 rounded-full bg-primary ring-2 ring-primary/20"></span><span class="font-label-sm text-label-sm text-on-surface">Auto-refresh 30s</span></div><button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" type="button"><span class="material-symbols-outlined text-[16px]">play_arrow</span><span>Run All Probes</span></button><button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary-container hover:bg-primary hover:text-on-primary font-body-sm text-body-sm font-semibold transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">add</span><span>New Monitor</span></button><div class="flex items-center gap-space-xs"><button class="p-space-xs rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors relative" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-tertiary-container ring-1 ring-surface"></span></button><button class="p-space-xs rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">dark_mode</span></button></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-16 bg-surface w-full px-space-xl min-h-screen"><div class="flex flex-col w-full pb-space-xl gap-space-lg">
+<!-- Sub-navigation Context Breadcrumb & Status Bar -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md bg-surface-container-low p-space-md rounded-xl shadow-lg relative overflow-hidden">
+<div class="absolute -right-16 -top-16 w-56 h-56 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex flex-col gap-space-xs min-w-0">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="hover:text-primary transition-colors cursor-pointer">MONITORS & PROBES</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span class="text-on-surface font-semibold">PRD-GATEWAY-US-EAST</span>
+<span class="bg-surface-container-highest px-1.5 py-0.5 rounded text-on-surface-variant text-[9px] tracking-wider uppercase">SYNTHETIC_HTTP_PROBE</span>
+</div>
+<div class="flex flex-wrap items-center gap-space-md pt-0.5">
+<h1 class="font-headline-md text-headline-md text-on-surface tracking-tight truncate">Production API Gateway - Telemetry Drawer & Health Diagnostics</h1>
+<div class="inline-flex items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full shadow-sm">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+<span class="font-label-md text-label-md font-semibold text-primary">HEALTHY • 200 OK</span>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 font-label-md text-label-md text-on-surface-variant mt-0.5">
+<div class="flex items-center gap-1.5 group bg-surface-container-lowest px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-primary text-[14px]">link</span>
+<code class="text-on-surface font-label-sm text-label-sm select-all">https://api.cloudmesh.io/v1/healthz</code>
+<button class="text-on-surface-variant hover:text-primary transition-colors" onclick="navigator.clipboard.writeText('https://api.cloudmesh.io/v1/healthz')" title="Copy endpoint URL" type="button">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+</button>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="https://api.cloudmesh.io/v1/healthz" rel="noopener noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">schedule</span>
+<span>Cadence: <strong class="text-on-surface">Every 10s</strong></span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-primary">hub</span>
+<span>Probing from <strong class="text-on-surface">28 Edge Regions</strong></span>
+</div>
+</div>
+</div>
+<!-- Action Triggers -->
+<div class="flex items-center gap-space-xs self-start lg:self-center shrink-0">
+<button class="flex items-center gap-1.5 px-space-md py-space-xs rounded bg-primary-container text-on-primary-container hover:bg-primary hover:text-on-primary font-headline-sm text-headline-sm text-[13px] shadow transition-all duration-200" id="instantProbeBtn" type="button">
+<span class="material-symbols-outlined text-[16px] transition-transform" id="probeIcon">refresh</span>
+<span>Instant Probe Now</span>
+</button>
+<button class="flex items-center gap-1.5 px-space-md py-space-xs rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-body-md text-body-md shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>Edit Config</span>
+</button>
+<button class="p-space-xs rounded bg-surface-container text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-colors shadow-sm" title="Pause Monitoring" type="button">
+<span class="material-symbols-outlined text-[18px]">pause_circle</span>
+</button>
+</div>
+</div>
+<!-- Row 1: Certificate Health & Network Timing Breakdown -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg">
+<!-- TLS / SSL Certificate Health Card (4 Cols) -->
+<div class="xl:col-span-4 bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between shadow-lg relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary shadow-inner">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface">TLS / SSL Verification</div>
+<div class="font-label-sm text-label-sm text-primary flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+              Automated renewal check: OK
+            </div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold">VALID</span>
+</div>
+<!-- Center Metric -->
+<div class="my-space-md p-space-sm bg-surface-container rounded-lg flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Days Remaining</span>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-lg text-headline-lg text-primary">72</span>
+<span class="font-label-md text-label-md text-on-surface-variant">days valid</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Expires</span>
+<div class="font-label-md text-label-md text-on-surface font-semibold">Nov 24, 2025</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">23:59:59 UTC</div>
+</div>
+</div>
+<!-- Spec Monospace Metadata List -->
+<div class="space-y-1.5 font-label-sm text-label-sm bg-surface-container-lowest p-space-sm rounded-lg">
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Certificate Authority</span>
+<span class="text-on-surface font-medium truncate max-w-[180px]">DigiCert Global Root G2</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Cipher Protocol</span>
+<span class="text-primary font-medium">TLSv1.3 / ChaCha20</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Key Strength</span>
+<span class="text-on-surface font-medium">ECDSA P-384 (384 bit)</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="text-on-surface-variant">SHA-256 Digest</span>
+<span class="text-on-surface-variant font-label-sm tracking-tight text-[9px] hover:text-on-surface transition-colors cursor-pointer" title="9F:4A:21:8E:B4:7C:10:9D:6A:53:C2:7F:89:12:00:EE">9F:4A:21:8E...00:EE</span>
+</div>
+</div>
+</div>
+<!-- Network Phase Timings (8 Cols) -->
+<div class="xl:col-span-8 bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between shadow-lg">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">speed</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface">Network Phase Timings & Latency Waterfall</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Microsecond breakdown aggregated from edge PoP: <strong class="text-on-surface">[iad-1] Ashburn, VA</strong></div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm self-start sm:self-center">
+<div class="text-right">
+<div class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Latency</div>
+<div class="font-headline-md text-headline-md text-on-surface leading-none">142 <span class="font-label-md text-label-md text-on-surface-variant">ms</span></div>
+</div>
+<div class="bg-primary/10 text-primary px-2 py-1 rounded font-label-sm text-label-sm flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">arrow_downward</span>
+<span>-18ms faster</span>
+</div>
+</div>
+</div>
+<!-- Segmented Waterfall Horizontal Stack Bar -->
+<div class="my-space-md">
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant mb-1.5">
+<span>T=0ms</span>
+<span class="text-on-surface font-semibold">142ms Cumulative TTFB+Download</span>
+</div>
+<!-- Stacked Horizontal Bar -->
+<div class="h-4 w-full bg-surface-container rounded flex overflow-hidden shadow-inner">
+<div class="bg-sky-400 h-full relative group transition-all" style="width: 7%;" title="DNS Lookup: 10ms (7%)">
+<span class="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px] text-on-surface whitespace-nowrap shadow z-10">DNS: 10ms</span>
+</div>
+<div class="bg-primary h-full relative group transition-all" style="width: 22.5%;" title="TCP Connection: 32ms (22.5%)">
+<span class="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px] text-on-surface whitespace-nowrap shadow z-10">TCP: 32ms</span>
+</div>
+<div class="bg-indigo-400 h-full relative group transition-all" style="width: 31.7%;" title="TLS Handshake: 45ms (31.7%)">
+<span class="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px] text-on-surface whitespace-nowrap shadow z-10">TLS: 45ms</span>
+</div>
+<div class="bg-secondary-container h-full relative group transition-all" style="width: 58.4%;" title="TTFB / Processing: 83ms (58.4%)">
+<span class="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px] text-on-surface whitespace-nowrap shadow z-10">TTFB: 83ms</span>
+</div>
+<div class="bg-tertiary-container h-full relative group transition-all" style="width: 9.8%;" title="Content Download: 14ms (9.8%)">
+<span class="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px] text-on-surface whitespace-nowrap shadow z-10">Download: 14ms</span>
+</div>
+</div>
+</div>
+<!-- Phase Stat Cards Legend -->
+<div class="grid grid-cols-2 sm:grid-cols-5 gap-space-sm pt-space-xs">
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-sky-400">
+<span class="h-2 w-2 rounded-full bg-sky-400"></span>
+<span>DNS Lookup</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface mt-1">10 <span class="text-[11px] font-normal text-on-surface-variant">ms</span></div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">-2ms rolling</div>
+</div>
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-primary">
+<span class="h-2 w-2 rounded-full bg-primary"></span>
+<span>TCP Connect</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface mt-1">32 <span class="text-[11px] font-normal text-on-surface-variant">ms</span></div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">steady</div>
+</div>
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-indigo-400">
+<span class="h-2 w-2 rounded-full bg-indigo-400"></span>
+<span>TLS Handshake</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface mt-1">45 <span class="text-[11px] font-normal text-on-surface-variant">ms</span></div>
+<div class="font-label-sm text-label-sm text-primary mt-0.5">-6ms TLS 1.3</div>
+</div>
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-secondary-container">
+<span class="h-2 w-2 rounded-full bg-secondary-container"></span>
+<span>TTFB Wait</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface mt-1">83 <span class="text-[11px] font-normal text-on-surface-variant">ms</span></div>
+<div class="font-label-sm text-label-sm text-primary mt-0.5">-10ms optimal</div>
+</div>
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col col-span-2 sm:col-span-1">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm text-tertiary-container">
+<span class="h-2 w-2 rounded-full bg-tertiary-container"></span>
+<span>Transfer</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface mt-1">14 <span class="text-[11px] font-normal text-on-surface-variant">ms</span></div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">1.2 KB payload</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Row 2: Split Diagnostic View (Availability Strip Stream & Recent Probe History) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Left Column: 24-Hour Continuous Availability Strip (5 Cols) -->
+<div class="lg:col-span-5 bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between shadow-lg">
+<div class="flex items-center justify-between">
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface">24h Availability Stream</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">96 segments • 15-minute resolution</div>
+</div>
+<div class="text-right">
+<div class="font-headline-sm text-headline-sm text-primary font-bold">99.98%</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">SLA Target: 99.90%</div>
+</div>
+</div>
+<!-- High Density 96-Bar Continuous Availability Strip -->
+<div class="my-space-md flex flex-col gap-space-xs">
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>24 Hours Ago (03:00 UTC)</span>
+<span>Now (Live)</span>
+</div>
+<div class="p-space-sm bg-surface-container-lowest rounded-lg">
+<div class="grid grid-flow-col auto-cols-fr gap-[2px] h-14 items-end">
+<!-- First ~48 bars clean green -->
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="03:15 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="03:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="03:45 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="04:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="04:15 UTC - 100% OK"></div>
+<div class="h-9 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="04:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="04:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="05:00 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="05:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="05:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="05:45 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="06:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="06:15 UTC - 100% OK"></div>
+<div class="h-9 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="06:30 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="06:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="07:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="07:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="07:30 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="07:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="08:00 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="08:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="08:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="08:45 UTC - 100% OK"></div>
+<div class="h-9 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="09:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="09:15 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="09:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="09:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="10:00 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="10:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="10:30 UTC - 100% OK"></div>
+<div class="h-9 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="10:45 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="11:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="11:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="11:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="11:45 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="12:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="12:15 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="12:30 UTC - 100% OK"></div>
+<!-- Amber latency spike at 12:43 UTC -->
+<div class="h-14 bg-secondary-container rounded-t-[1px] shadow-sm relative group cursor-pointer" title="12:45 UTC - Latency Spike 384ms (No packet loss)">
+<span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-container-highest px-2 py-0.5 rounded text-[10px] text-secondary font-label-sm whitespace-nowrap shadow z-20">12:43 UTC Spike 384ms</span>
+</div>
+<!-- Remaining bars back to green -->
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="13:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="13:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="13:30 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="13:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="14:00 UTC - 100% OK"></div>
+<div class="h-9 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="14:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="14:30 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="14:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="15:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="15:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="15:30 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="15:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="16:00 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="16:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="16:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="16:45 UTC - 100% OK"></div>
+<div class="h-9 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="17:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="17:15 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="17:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="17:45 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="18:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="18:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="18:30 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="18:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="19:00 UTC - 100% OK"></div>
+<div class="h-9 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="19:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="19:30 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="19:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="20:00 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="20:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="20:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="20:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="21:00 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="21:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="21:30 UTC - 100% OK"></div>
+<div class="h-9 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="21:45 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="22:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="22:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="22:30 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="22:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="23:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="23:15 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="23:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="23:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="00:00 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="00:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="00:30 UTC - 100% OK"></div>
+<div class="h-9 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="00:45 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="01:00 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="01:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="01:30 UTC - 100% OK"></div>
+<div class="h-12 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="01:45 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="02:00 UTC - 100% OK"></div>
+<div class="h-11 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="02:15 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="02:30 UTC - 100% OK"></div>
+<div class="h-10 bg-primary/80 hover:bg-primary rounded-t-[1px] transition-all" title="02:45 UTC - 100% OK"></div>
+<div class="h-12 bg-primary hover:bg-primary-fixed rounded-t-[1px] transition-all shadow-[0_0_8px_rgba(78,222,163,0.5)]" title="03:00 UTC (Current) - 100% OK"></div>
+</div>
+</div>
+</div>
+<!-- Incident Analysis Strip Detail -->
+<div class="p-space-sm bg-surface-container rounded-lg flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary-container text-[16px]">info</span>
+<span>1 incident flagged: <strong class="text-on-surface">12:43 UTC</strong> (transient edge congestion)</span>
+</div>
+<span class="text-on-surface hover:text-primary cursor-pointer transition-colors">Inspect Trace</span>
+</div>
+</div>
+<!-- Right Column: Recent Probe Execution History Log Table (7 Cols) -->
+<div class="lg:col-span-7 bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between shadow-lg">
+<div class="flex items-center justify-between pb-space-xs">
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface">Live Probe Stream (/results)</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Real-time edge telemetry worker receipts</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-primary uppercase">Receiving</span>
+</div>
+</div>
+<!-- High Density Table -->
+<div class="overflow-x-auto my-space-xs">
+<table class="w-full text-left font-label-sm text-label-sm border-collapse">
+<thead>
+<tr class="bg-surface-container-lowest text-on-surface-variant uppercase text-[10px] tracking-wider">
+<th class="py-2 px-space-sm rounded-l">Time (UTC)</th>
+<th class="py-2 px-space-sm">Status</th>
+<th class="py-2 px-space-sm">PoP Region</th>
+<th class="py-2 px-space-sm text-right">Latency</th>
+<th class="py-2 px-space-sm hidden sm:table-cell">DNS / TCP / TLS</th>
+<th class="py-2 px-space-sm text-right rounded-r">Worker IP</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<!-- Row 1: Healthy -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2.5 px-space-sm text-on-surface whitespace-nowrap">03:00:12</td>
+<td class="py-2.5 px-space-sm whitespace-nowrap">
+<span class="inline-flex items-center gap-1 bg-primary/10 text-primary px-1.5 py-0.5 rounded font-semibold text-[10px]">
+<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                  200 OK
+                </span>
+</td>
+<td class="py-2.5 px-space-sm text-on-surface font-semibold whitespace-nowrap">
+<span class="bg-surface-container px-1.5 py-0.5 rounded text-on-surface">[iad-1] Ashburn</span>
+</td>
+<td class="py-2.5 px-space-sm text-right font-semibold text-primary whitespace-nowrap">142 ms</td>
+<td class="py-2.5 px-space-sm text-on-surface-variant hidden sm:table-cell whitespace-nowrap">10 / 32 / 45 ms</td>
+<td class="py-2.5 px-space-sm text-right text-on-surface-variant whitespace-nowrap">198.51.100.24</td>
+</tr>
+<!-- Row 2: Healthy Europe -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2.5 px-space-sm text-on-surface whitespace-nowrap">03:00:02</td>
+<td class="py-2.5 px-space-sm whitespace-nowrap">
+<span class="inline-flex items-center gap-1 bg-primary/10 text-primary px-1.5 py-0.5 rounded font-semibold text-[10px]">
+<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                  200 OK
+                </span>
+</td>
+<td class="py-2.5 px-space-sm text-on-surface font-semibold whitespace-nowrap">
+<span class="bg-surface-container px-1.5 py-0.5 rounded text-on-surface">[fra-2] Frankfurt</span>
+</td>
+<td class="py-2.5 px-space-sm text-right font-semibold text-primary whitespace-nowrap">118 ms</td>
+<td class="py-2.5 px-space-sm text-on-surface-variant hidden sm:table-cell whitespace-nowrap">8 / 26 / 38 ms</td>
+<td class="py-2.5 px-space-sm text-right text-on-surface-variant whitespace-nowrap">198.51.100.89</td>
+</tr>
+<!-- Row 3: Chaos Injection Test (502 Bad Gateway) -->
+<tr class="hover:bg-surface-container/60 transition-colors bg-error-container/10">
+<td class="py-2.5 px-space-sm text-on-surface whitespace-nowrap">02:59:52</td>
+<td class="py-2.5 px-space-sm whitespace-nowrap">
+<span class="inline-flex items-center gap-1 bg-error-container text-error px-1.5 py-0.5 rounded font-semibold text-[10px]">
+<span class="h-1.5 w-1.5 rounded-full bg-error"></span>
+                  502 BAD GATEWAY
+                </span>
+</td>
+<td class="py-2.5 px-space-sm text-on-surface font-semibold whitespace-nowrap">
+<span class="bg-surface-container px-1.5 py-0.5 rounded text-tertiary-container">[sin-1] Chaos-Probe</span>
+</td>
+<td class="py-2.5 px-space-sm text-right font-semibold text-error whitespace-nowrap">842 ms</td>
+<td class="py-2.5 px-space-sm text-on-surface-variant hidden sm:table-cell whitespace-nowrap">14 / 88 / 190 ms</td>
+<td class="py-2.5 px-space-sm text-right text-error whitespace-nowrap">203.0.113.41</td>
+</tr>
+<!-- Row 4: Healthy Asia-Pacific -->
+<tr class="hover:bg-surface-container/60 transition-colors">
+<td class="py-2.5 px-space-sm text-on-surface whitespace-nowrap">02:59:42</td>
+<td class="py-2.5 px-space-sm whitespace-nowrap">
+<span class="inline-flex items-center gap-1 bg-primary/10 text-primary px-1.5 py-0.5 rounded font-semibold text-[10px]">
+<span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                  200 OK
+                </span>
+</td>
+<td class="py-2.5 px-space-sm text-on-surface font-semibold whitespace-nowrap">
+<span class="bg-surface-container px-1.5 py-0.5 rounded text-on-surface">[sin-1] Singapore</span>
+</td>
+<td class="py-2.5 px-space-sm text-right font-semibold text-primary whitespace-nowrap">186 ms</td>
+<td class="py-2.5 px-space-sm text-on-surface-variant hidden sm:table-cell whitespace-nowrap">12 / 41 / 52 ms</td>
+<td class="py-2.5 px-space-sm text-right text-on-surface-variant whitespace-nowrap">203.0.113.12</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm pt-space-xs">
+<span>Showing 4 of 8,640 probes today</span>
+<button class="text-primary hover:underline flex items-center gap-1" type="button">
+<span>Export raw NDJSON logs</span>
+<span class="material-symbols-outlined text-[13px]">download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Row 3: Quick Configure Drawer / Endpoint Assert Settings Dock -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-lg border-t-2 border-primary/40 relative">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md mb-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">rule</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface">Endpoint Validation Assertions & SRE Guardrails</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Active assertions enforced on all 28 edge synthetic workers</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Auto-Failover Alerting:</span>
+<span class="font-label-sm text-label-sm bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold">PagerDuty + Slack #ops</span>
+</div>
+</div>
+<!-- 3 Configuration Assert Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Assertion 1: Status Code -->
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">HTTP Status Assertion</span>
+<span class="material-symbols-outlined text-primary text-[16px]">check_circle</span>
+</div>
+<div class="flex items-center gap-space-sm my-1">
+<code class="font-label-lg text-label-lg text-on-surface bg-surface-container-lowest px-2 py-1 rounded">status === 200</code>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Strict matching. Non-200 triggers single retry before alerting.</p>
+</div>
+<!-- Assertion 2: Payload JSON schema assertion -->
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Payload Body Assertion</span>
+<span class="material-symbols-outlined text-primary text-[16px]">code</span>
+</div>
+<div class="flex items-center gap-space-sm my-1">
+<code class="font-label-lg text-label-lg text-primary bg-surface-container-lowest px-2 py-1 rounded truncate w-full">{"status": "healthy"}</code>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Evaluates deep JSON key matching on response body stream.</p>
+</div>
+<!-- Assertion 3: Timeout Threshold -->
+<div class="bg-surface-container p-space-sm rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Hard Timeout Threshold</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">timer</span>
+</div>
+<div class="flex items-center gap-space-sm my-1">
+<code class="font-label-lg text-label-lg text-on-surface bg-surface-container-lowest px-2 py-1 rounded">5000 ms (5.0s)</code>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Worker socket closes with `ETIMEDOUT` if threshold exceeded.</p>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Instant Probe button visual feedback
+  const probeBtn = document.getElementById('instantProbeBtn');
+  const probeIcon = document.getElementById('probeIcon');
+  if (probeBtn && probeIcon) {
+    probeBtn.addEventListener('click', () => {
+      probeIcon.classList.add('animate-spin');
+      probeBtn.disabled = true;
+      setTimeout(() => {
+        probeIcon.classList.remove('animate-spin');
+        probeBtn.disabled = false;
+      }, 1200);
+    });
+  }
+</script></main></div></body></html>
